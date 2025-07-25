@@ -131,7 +131,7 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
         ];
 
         foreach ($columns as $columnName) {
-            $usage = $this->findColumnUsage($tableName, $columnName, $scanPaths, $options);
+            $usage = $this->findColumnUsage($tableName, $columnName, $scanPaths);
 
             $columnUsage[$columnName] = [
                 'used' => ! empty($usage['files']),
@@ -148,7 +148,7 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
         return $columnUsage;
     }
 
-    private function findColumnUsage(string $tableName, string $columnName, array $scanPaths, array $options): array
+    private function findColumnUsage(string $tableName, string $columnName, array $scanPaths): array
     {
         $files = [];
         $modelInfo = [];
@@ -158,7 +158,7 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
                 continue;
             }
 
-            $foundFiles = $this->scanDirectoryForColumn($path, $tableName, $columnName);
+            $foundFiles = $this->scanDirectoryForColumn($path, $columnName);
             $files = array_merge($files, $foundFiles);
         }
 
@@ -184,7 +184,7 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
 
         foreach ($files as $file) {
             $path = $file['path'] ?? '';
-            if (!in_array($path, $seenPaths)) {
+            if (! in_array($path, $seenPaths)) {
                 $uniqueFiles[] = $file;
                 $seenPaths[] = $path;
             }
@@ -193,7 +193,7 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
         return $uniqueFiles;
     }
 
-    private function scanDirectoryForColumn(string $path, string $tableName, string $columnName): array
+    private function scanDirectoryForColumn(string $path, string $columnName): array
     {
         $files = [];
         $allFiles = File::allFiles($path);

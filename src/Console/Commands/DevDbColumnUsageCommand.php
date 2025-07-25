@@ -24,7 +24,7 @@ final class DevDbColumnUsageCommand extends Command
         $tables = $this->option('table');
         $exclude = $this->option('exclude');
         $unusedOnly = $this->option('unused-only');
-        $this->option('format');
+        $format = $this->option('format');
         $output = $this->option('output');
 
         $this->info('📊 Analyzing database column usage...');
@@ -41,11 +41,13 @@ final class DevDbColumnUsageCommand extends Command
             if ($output) {
                 file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
                 $this->info("Results saved to: {$output}");
+            } elseif ($format === 'json') {
+                $this->line(json_encode($result, JSON_PRETTY_PRINT));
             } else {
                 $this->displayResults($result, $unusedOnly);
             }
 
-            return self::SUCCESS;
+return self::SUCCESS;
         } catch (Exception $e) {
             $this->error('Error analyzing column usage: '.$e->getMessage());
 

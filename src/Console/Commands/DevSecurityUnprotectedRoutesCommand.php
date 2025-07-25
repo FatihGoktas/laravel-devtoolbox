@@ -22,7 +22,7 @@ final class DevSecurityUnprotectedRoutesCommand extends Command
     {
         $criticalOnly = $this->option('critical-only');
         $exclude = $this->option('exclude');
-        $this->option('format');
+        $format = $this->option('format');
         $output = $this->option('output');
 
         $this->info('🔐 Scanning for unprotected routes...');
@@ -38,6 +38,8 @@ final class DevSecurityUnprotectedRoutesCommand extends Command
             if ($output) {
                 file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
                 $this->info("Results saved to: {$output}");
+            } elseif ($format === 'json') {
+                $this->line(json_encode($result, JSON_PRETTY_PRINT));
             } else {
                 $this->displayResults($result);
             }
