@@ -6,6 +6,10 @@ namespace Grazulex\LaravelDevtoolbox;
 
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevCommandsCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevDbColumnUsageCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevRoutesWhereCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevLogTailCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevContainerBindingsCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevAboutPlusCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevEnvDiffCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevMiddlewareCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevModelGraphCommand;
@@ -69,6 +73,10 @@ final class LaravelDevtoolboxServiceProvider extends ServiceProvider
                 DevViewsCommand::class,
                 DevSecurityUnprotectedRoutesCommand::class,
                 DevDbColumnUsageCommand::class,
+                DevRoutesWhereCommand::class,
+                DevLogTailCommand::class,
+                DevContainerBindingsCommand::class,
+                DevAboutPlusCommand::class,
             ]);
         }
 
