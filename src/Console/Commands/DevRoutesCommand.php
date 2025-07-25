@@ -19,7 +19,10 @@ final class DevRoutesCommand extends Command
         $format = $this->option('format');
         $output = $this->option('output');
 
-        $this->info('Scanning application routes...');
+        // Only show progress message if not outputting JSON directly
+        if ($format !== 'json') {
+            $this->info('Scanning application routes...');
+        }
 
         try {
             $result = $manager->scan('routes', [
@@ -28,7 +31,11 @@ final class DevRoutesCommand extends Command
 
             if ($output) {
                 file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
-                $this->info("Results saved to: {$output}");
+                if ($format !== 'json') {
+                    $this->info("Results saved to: {$output}");
+                }
+            } elseif ($format === 'json') {
+                $this->line(json_encode($result, JSON_PRETTY_PRINT));
             } else {
                 $this->displayResults($result);
             }
