@@ -1,0 +1,200 @@
+# GitHub Actions - Laravel Devtoolbox Quality Gates
+# This workflow runs quality checks using Laravel Devtoolbox
+# Add this file to .github/workflows/devtoolbox-quality.yml
+
+name: Code Quality with Laravel Devtoolbox
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, dom, fileinfo, mysql
+        coverage: none
+    
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+    
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+    
+    - name: Copy environment file
+      run: cp .env.example .env
+    
+    - name: Generate application key
+      run: php artisan key:generate
+    
+    - name: Create database
+      run: |
+        mkdir -p database
+        touch database/database.sqlite
+    
+    - name: Run migrations
+      run: php artisan migrate --env=testing
+    
+    # Quality Gate 1: Check for unused routes
+    - name: Check for unused routes
+      id: unused-routes
+      run: |
+        UNUSED_COUNT=$(php artisan dev:routes:unused --format=count | jq -r '.count // 0')
+        echo "unused_routes=$UNUSED_COUNT" >> $GITHUB_OUTPUT
+        
+        if [ "$UNUSED_COUNT" -gt 10 ]; then
+          echo "❌ Too many unused routes: $UNUSED_COUNT"
+          echo "Please clean up unused routes before merging"
+          exit 1
+        else
+          echo "✅ Unused routes check passed: $UNUSED_COUNT routes"
+        fi
+    
+    # Quality Gate 2: Model health check
+    - name: Model health check
+      run: |
+        # Check for models without relationships (potential orphans)
+        php artisan dev:models --format=json > models.json
+        ORPHAN_COUNT=$(jq '[.data[] | select(.relationships | length == 0)] | length' models.json)
+        
+        if [ "$ORPHAN_COUNT" -gt 5 ]; then
+          echo "⚠️ Warning: $ORPHAN_COUNT models without relationships found"
+          echo "Consider reviewing these models for completeness"
+        else
+          echo "✅ Model relationships check passed"
+        fi
+    
+    # Quality Gate 3: Environment consistency
+    - name: Environment consistency check
+      run: |
+        if [ -f ".env.example" ]; then
+          php artisan dev:env:diff --against=.env.example --format=json > env-diff.json
+          
+          MISSING_VARS=$(jq '[.missing_in_env // []] | length' env-diff.json)
+          if [ "$MISSING_VARS" -gt 0 ]; then
+            echo "❌ Missing environment variables in .env.example"
+            jq -r '.missing_in_env[]? | "  - " + .' env-diff.json
+            exit 1
+          else
+            echo "✅ Environment consistency check passed"
+          fi
+        else
+          echo "⚠️ .env.example not found - skipping environment check"
+        fi
+    
+    # Quality Gate 4: Service container analysis
+    - name: Service container analysis
+      run: |
+        SERVICE_COUNT=$(php artisan dev:services --format=count | jq -r '.count // 0')
+        echo "✅ Found $SERVICE_COUNT registered services"
+        
+        # Save services data for artifacts
+        php artisan dev:services --format=json > services.json
+    
+    # Generate comprehensive report
+    - name: Generate quality report
+      run: |
+        mkdir -p reports
+        
+        # Full application scan
+        php artisan dev:scan --all --format=json > reports/full-scan.json
+        
+        # Generate summary
+        cat > reports/quality-summary.md << EOF
+        # Code Quality Summary
+        
+        **Branch:** ${{ github.ref_name }}
+        **Commit:** ${{ github.sha }}
+        **Date:** $(date)
+        
+        ## Quality Metrics
+        - **Unused Routes:** ${{ steps.unused-routes.outputs.unused_routes }}
+        - **Models:** $(jq '.data | length' models.json) total
+        - **Services:** $(jq '.count' < <(php artisan dev:services --format=count)) registered
+        
+        ## Status
+        - ✅ All quality gates passed
+        - 📊 Detailed reports available in artifacts
+        
+        EOF
+    
+    # Upload artifacts
+    - name: Upload quality reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: quality-reports
+        path: |
+          reports/
+          *.json
+        retention-days: 30
+
+  performance-check:
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, dom, fileinfo, mysql
+    
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+    
+    - name: Setup application
+      run: |
+        cp .env.example .env
+        php artisan key:generate
+        touch database/database.sqlite
+        php artisan migrate --env=testing
+    
+    # Performance check for critical routes
+    - name: Performance baseline check
+      run: |
+        mkdir -p performance
+        
+        # Test critical routes (if they exist)
+        ROUTES=("home" "api.status")
+        
+        for route in "${ROUTES[@]}"; do
+          if php artisan route:list --name="$route" &>/dev/null; then
+            echo "Testing route: $route"
+            php artisan dev:sql:trace --route="$route" --output="performance/$route.json" || true
+          fi
+        done
+        
+        # Generate performance summary
+        if [ "$(ls -A performance/)" ]; then
+          echo "📊 Performance data collected"
+          echo "Critical routes tested: $(ls performance/*.json | wc -l)"
+        else
+          echo "⚠️ No critical routes found for performance testing"
+        fi
+    
+    - name: Upload performance data
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-data
+        path: performance/
+        retention-days: 7
