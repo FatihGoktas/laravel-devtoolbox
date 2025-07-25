@@ -97,7 +97,46 @@ jobs:
           echo "⚠️ .env.example not found - skipping environment check"
         fi
     
-    # Quality Gate 4: Service container analysis
+    # Quality Gate 4: Security audit
+    - name: Security audit
+      run: |
+        # Check for unprotected routes
+        php artisan dev:security:unprotected-routes --format=json > security-audit.json
+        
+        CRITICAL_ISSUES=$(jq '.security_summary.critical_issues // 0' security-audit.json)
+        SECURITY_SCORE=$(jq '.security_summary.overall_security_score // 0' security-audit.json)
+        
+        if [ "$CRITICAL_ISSUES" -gt 0 ]; then
+          echo "❌ Critical security issues found: $CRITICAL_ISSUES"
+          echo "Security score: $SECURITY_SCORE/100"
+          jq -r '.critical_routes[]? | "🚨 CRITICAL: " + .route_name + " - " + .issue' security-audit.json
+          exit 1
+        elif [ "$SECURITY_SCORE" -lt 70 ]; then
+          echo "⚠️ Warning: Low security score ($SECURITY_SCORE/100)"
+          echo "Consider reviewing security recommendations"
+        else
+          echo "✅ Security audit passed (Score: $SECURITY_SCORE/100)"
+        fi
+
+    # Quality Gate 5: Database health check
+    - name: Database health check
+      run: |
+        # Analyze database column usage
+        php artisan dev:db:column-usage --format=json > db-analysis.json
+        
+        UNUSED_COLUMNS=$(jq '.summary.total_unused_columns // 0' db-analysis.json)
+        USAGE_PERCENTAGE=$(jq '.summary.usage_percentage // 100' db-analysis.json)
+        
+        if [ "$UNUSED_COLUMNS" -gt 20 ]; then
+          echo "⚠️ Warning: $UNUSED_COLUMNS unused database columns found"
+          echo "Database usage: $USAGE_PERCENTAGE%"
+          echo "Consider database cleanup for better performance"
+        else
+          echo "✅ Database health check passed"
+          echo "Usage: $USAGE_PERCENTAGE%, Unused columns: $UNUSED_COLUMNS"
+        fi
+
+    # Quality Gate 6: Service container analysis
     - name: Service container analysis
       run: |
         SERVICE_COUNT=$(php artisan dev:services --format=count | jq -r '.count // 0')
@@ -126,6 +165,9 @@ jobs:
         - **Unused Routes:** ${{ steps.unused-routes.outputs.unused_routes }}
         - **Models:** $(jq '.data | length' models.json) total
         - **Services:** $(jq '.count' < <(php artisan dev:services --format=count)) registered
+        - **Security Score:** $(jq '.security_summary.overall_security_score // "N/A"' security-audit.json)/100
+        - **Database Usage:** $(jq '.summary.usage_percentage // "N/A"' db-analysis.json)%
+        - **Unused DB Columns:** $(jq '.summary.total_unused_columns // "N/A"' db-analysis.json)
         
         ## Status
         - ✅ All quality gates passed
@@ -142,6 +184,8 @@ jobs:
         path: |
           reports/
           *.json
+          security-audit.json
+          db-analysis.json
         retention-days: 30
 
   performance-check:

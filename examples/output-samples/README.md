@@ -37,6 +37,40 @@ This directory contains sample outputs from Laravel Devtoolbox commands in vario
 - Onboarding new developers
 - Code review preparation
 
+### `db-column-usage.json`
+**Command:** `php artisan dev:db:column-usage --format=json`  
+**Description:** Database column usage analysis across the Laravel application codebase
+
+**Key Features:**
+- Column-by-column usage analysis
+- Usage location tracking (files and line numbers)
+- Unused column identification  
+- Usage statistics and counts
+- Cleanup recommendations
+
+**Use Cases:**
+- Database optimization
+- Identify unused columns for cleanup
+- Track column usage patterns
+- Database migration planning
+
+### `security-unprotected-routes.json`
+**Command:** `php artisan dev:security:unprotected-routes --format=json`  
+**Description:** Security analysis of routes lacking proper authentication middleware
+
+**Key Features:**
+- Security level classification (critical, high, medium, low)
+- Detailed security issue identification
+- Remediation recommendations
+- Overall security scoring
+- Critical route highlighting
+
+**Use Cases:**
+- Security auditing
+- Compliance checking
+- Vulnerability assessment
+- Security monitoring
+
 ### `sql-trace.json`
 **Command:** `php artisan dev:sql:trace --route=users.index`  
 **Description:** Complete SQL performance analysis for a route
@@ -112,6 +146,55 @@ This directory contains sample outputs from Laravel Devtoolbox commands in vario
 }
 ```
 
+### Database Column Usage Structure
+```json
+{
+  "command": "dev:db:column-usage",
+  "data": [
+    {
+      "table_name": "users",
+      "total_columns": 8,
+      "columns": [
+        {
+          "column_name": "name",
+          "type": "varchar(255)",
+          "used": true,
+          "usage_locations": ["app/Models/User.php"],
+          "usage_count": 8
+        }
+      ],
+      "unused_columns_count": 1
+    }
+  ],
+  "summary": {
+    "total_unused_columns": 3,
+    "usage_percentage": 80.0
+  }
+}
+```
+
+### Security Analysis Structure
+```json
+{
+  "command": "dev:security:unprotected-routes",
+  "data": [
+    {
+      "route_name": "admin.dashboard",
+      "uri": "admin/dashboard",
+      "security_level": "critical",
+      "protected": false,
+      "issues": ["Admin endpoint without authentication"],
+      "recommendations": ["Add auth middleware immediately"]
+    }
+  ],
+  "security_summary": {
+    "critical_issues": 2,
+    "overall_security_score": 65,
+    "security_grade": "C"
+  }
+}
+```
+
 ### Mermaid Diagram Structure
 ```mermaid
 graph TB
@@ -136,6 +219,15 @@ jq '.data.queries[] | select(.time > 100)' sql-trace.json
 
 # Calculate average query time
 jq '.data.statistics.average_time' sql-trace.json
+
+# Find unused database columns
+jq '.data[].columns[] | select(.used == false)' db-column-usage.json
+
+# Get critical security issues
+jq '.data[] | select(.security_level == "critical")' security-unprotected-routes.json
+
+# Count tables with unused columns
+jq '[.data[] | select(.unused_columns_count > 0)] | length' db-column-usage.json
 ```
 
 ### Converting to Other Formats
@@ -160,6 +252,14 @@ echo "laravel_unused_routes_total $(jq '.count' unused-routes.json)"
 
 # InfluxDB format
 echo "laravel,app=myapp models_count=$(jq '.data | length' models.json)i"
+
+# Security metrics
+echo "laravel_security_score $(jq '.security_summary.overall_security_score' security-unprotected-routes.json)"
+echo "laravel_critical_security_issues $(jq '.security_summary.critical_issues' security-unprotected-routes.json)"
+
+# Database health metrics  
+echo "laravel_unused_columns $(jq '.summary.total_unused_columns' db-column-usage.json)"
+echo "laravel_db_usage_percentage $(jq '.summary.usage_percentage' db-column-usage.json)"
 ```
 
 ## Viewing Mermaid Diagrams
@@ -190,6 +290,30 @@ SLOW_QUERIES=$(jq '.data.slow_queries | length' sql-trace.json)
 if [ $SLOW_QUERIES -gt 0 ]; then
     echo "Alert: $SLOW_QUERIES slow queries detected"
 fi
+```
+
+### Security Monitoring
+```bash
+# Daily security audit
+php artisan dev:security:unprotected-routes --format=json > security/daily-$(date +%Y%m%d).json
+
+# Alert on critical issues
+CRITICAL_ISSUES=$(jq '.security_summary.critical_issues' security-unprotected-routes.json)
+if [ $CRITICAL_ISSUES -gt 0 ]; then
+    echo "ALERT: $CRITICAL_ISSUES critical security issues detected"
+    # Send notification (Slack, email, etc.)
+fi
+```
+
+### Database Health Monitoring
+```bash
+# Weekly database analysis
+php artisan dev:db:column-usage --format=json > database/weekly-$(date +%Y%m%d).json
+
+# Track database cleanliness
+UNUSED_COLUMNS=$(jq '.summary.total_unused_columns' db-column-usage.json)
+USAGE_PERCENTAGE=$(jq '.summary.usage_percentage' db-column-usage.json)
+echo "Database health: $USAGE_PERCENTAGE% usage, $UNUSED_COLUMNS unused columns"
 ```
 
 ### Quality Metrics

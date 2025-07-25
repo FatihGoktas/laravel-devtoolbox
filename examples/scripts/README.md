@@ -28,6 +28,32 @@ This directory contains ready-to-use automation scripts for Laravel Devtoolbox.
 - Complexity metrics
 - Markdown report generation
 
+### `security-audit.sh`
+**Purpose:** Comprehensive security analysis of Laravel application  
+**Usage:** `./security-audit.sh`  
+**Output:** `security-audit/YYYYMMDD/`
+
+**Features:**
+- Scans for unprotected routes
+- Identifies critical security issues
+- Analyzes middleware configuration
+- Generates security summary report
+- Provides remediation recommendations
+- Exit codes for CI/CD integration
+
+### `database-analysis.sh`
+**Purpose:** Database column usage analysis and optimization insights  
+**Usage:** `./database-analysis.sh`  
+**Output:** `database-analysis/YYYYMMDD/`
+
+**Features:**
+- Analyzes database column usage across codebase
+- Identifies unused columns
+- Critical table analysis
+- Database health scoring
+- Cleanup recommendations
+- Optimization opportunities
+
 ### `performance-monitor.sh`
 **Purpose:** SQL performance monitoring for critical routes  
 **Usage:** `./performance-monitor.sh`  

@@ -10,10 +10,12 @@ This directory contains configuration templates for integrating Laravel Devtoolb
 
 **Features:**
 - Quality gate enforcement (unused routes, model health, environment consistency)
+- Security audit with critical issue detection
+- Database health monitoring and column usage analysis
 - Performance baseline testing
 - Automated report generation
 - Artifact collection
-- Multi-stage pipeline (build → quality → performance → documentation)
+- Multi-stage pipeline (build → quality → security → performance → documentation)
 
 **Usage:**
 1. Copy to `.github/workflows/devtoolbox-quality.yml`
@@ -54,6 +56,14 @@ ORPHAN_MODELS=$(jq '[.data[] | select(.relationships | length == 0)] | length' m
 
 # Environment consistency
 MISSING_VARS=$(jq '[.missing_in_env // []] | length' env-diff.json)
+
+# Security thresholds
+CRITICAL_SECURITY_ISSUES=$(jq '.security_summary.critical_issues // 0' security-audit.json)
+SECURITY_SCORE=$(jq '.security_summary.overall_security_score // 0' security-audit.json)
+
+# Database health
+UNUSED_COLUMNS=$(jq '.summary.total_unused_columns // 0' db-analysis.json)
+DB_USAGE_PERCENTAGE=$(jq '.summary.usage_percentage // 100' db-analysis.json)
 ```
 
 ### Customization Points
@@ -76,6 +86,14 @@ DEVTOOLBOX_ORPHAN_MODELS_THRESHOLD=5
 # Optional: Performance limits  
 DEVTOOLBOX_SLOW_QUERY_THRESHOLD=100
 DEVTOOLBOX_MAX_QUERIES_THRESHOLD=20
+
+# Optional: Security thresholds
+DEVTOOLBOX_MIN_SECURITY_SCORE=70
+DEVTOOLBOX_MAX_CRITICAL_ISSUES=0
+
+# Optional: Database health limits
+DEVTOOLBOX_MAX_UNUSED_COLUMNS=20
+DEVTOOLBOX_MIN_DB_USAGE_PERCENTAGE=80
 ```
 
 ## Integration Examples
@@ -86,6 +104,25 @@ DEVTOOLBOX_MAX_QUERIES_THRESHOLD=20
 UNUSED_COUNT=$(php artisan dev:routes:unused --format=count | jq '.count')
 if [ $UNUSED_COUNT -gt 10 ]; then
     exit 1
+fi
+```
+
+### Security Monitoring
+```bash
+# Security audit gates
+CRITICAL_ISSUES=$(php artisan dev:security:unprotected-routes --critical-only --format=json | jq '.security_summary.critical_issues // 0')
+if [ $CRITICAL_ISSUES -gt 0 ]; then
+    echo "❌ Critical security issues found"
+    exit 1
+fi
+```
+
+### Database Health Gates
+```bash
+# Database cleanup threshold
+UNUSED_COLUMNS=$(php artisan dev:db:column-usage --unused-only --format=json | jq '.summary.total_unused_columns // 0')
+if [ $UNUSED_COLUMNS -gt 20 ]; then
+    echo "⚠️ Consider database cleanup"
 fi
 ```
 
