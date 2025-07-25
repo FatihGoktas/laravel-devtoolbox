@@ -27,7 +27,10 @@ final class DevDbColumnUsageCommand extends Command
         $format = $this->option('format');
         $output = $this->option('output');
 
-        $this->info('📊 Analyzing database column usage...');
+        // Only show progress message if not outputting JSON directly
+        if ($format !== 'json') {
+            $this->info('📊 Analyzing database column usage...');
+        }
 
         try {
             $result = $manager->scan('db-column-usage', [
@@ -40,14 +43,16 @@ final class DevDbColumnUsageCommand extends Command
 
             if ($output) {
                 file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
-                $this->info("Results saved to: {$output}");
+                if ($format !== 'json') {
+                    $this->info("Results saved to: {$output}");
+                }
             } elseif ($format === 'json') {
                 $this->line(json_encode($result, JSON_PRETTY_PRINT));
             } else {
                 $this->displayResults($result, $unusedOnly);
             }
 
-return self::SUCCESS;
+            return self::SUCCESS;
         } catch (Exception $e) {
             $this->error('Error analyzing column usage: '.$e->getMessage());
 

@@ -124,11 +124,14 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
     private function analyzeTableColumnUsage(string $tableName, array $columns, array $options): array
     {
         $columnUsage = [];
-        $scanPaths = $options['scan_paths'] ?? [
+        $defaultPaths = [
             app_path(),
             resource_path('views'),
             database_path('migrations'),
         ];
+
+        // Filter paths to only include those that exist
+        $scanPaths = $options['scan_paths'] ?? array_filter($defaultPaths, fn ($path) => File::exists($path));
 
         foreach ($columns as $columnName) {
             $usage = $this->findColumnUsage($tableName, $columnName, $scanPaths);
@@ -272,10 +275,17 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
         $modelName = str_replace('_', '', ucwords($tableName, '_'));
         $modelName = mb_rtrim($modelName, 's'); // Remove trailing 's' for plural tables
 
-        $possiblePaths = [
-            app_path("Models/{$modelName}.php"),
-            app_path("{$modelName}.php"),
-        ];
+        $possiblePaths = [];
+
+        // Only add paths that might exist
+        try {
+            if (function_exists('app_path')) {
+                $possiblePaths[] = app_path("Models/{$modelName}.php");
+                $possiblePaths[] = app_path("{$modelName}.php");
+            }
+        } catch (Exception $e) {
+            // app_path() function not available or app path doesn't exist
+        }
 
         foreach ($possiblePaths as $path) {
             if (File::exists($path)) {

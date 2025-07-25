@@ -25,8 +25,11 @@ final class DevScanCommand extends Command
         $output = $this->option('output');
 
         if ($all) {
+            // Only show progress message if not outputting JSON directly
+            if ($format !== 'json') {
+                $this->info('Scanning all available types...');
+            }
             $result = $manager->scanAll(['format' => $format]);
-            $this->info('Scanning all available types...');
         } elseif ($type) {
             if (! in_array($type, $manager->availableScanners())) {
                 $this->error("Unknown scanner type: {$type}");
@@ -35,8 +38,11 @@ final class DevScanCommand extends Command
                 return self::FAILURE;
             }
 
+            // Only show progress message if not outputting JSON directly
+            if ($format !== 'json') {
+                $this->info("Scanning {$type}...");
+            }
             $result = $manager->scan($type, ['format' => $format]);
-            $this->info("Scanning {$type}...");
         } else {
             $this->info('Available scanner types:');
             foreach ($manager->availableScanners() as $scanner) {

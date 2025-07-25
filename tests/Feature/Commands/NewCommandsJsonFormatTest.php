@@ -19,4 +19,10 @@ final class NewCommandsJsonFormatTest extends TestCase
         $this->artisan('dev:security:unprotected-routes --format=json')
             ->assertExitCode(0);
     }
+
+    public function test_dev_scan_all_command_supports_json_format(): void
+    {
+        $this->artisan('dev:scan --all --format=json')
+            ->assertExitCode(0);
+    }
 }
