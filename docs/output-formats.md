@@ -176,6 +176,8 @@ php artisan dev:scan --all --output=/tmp/full-scan.json
 | `dev:services` | ✅ | ✅ | ✅ | ❌ |
 | `dev:middleware` | ✅ | ✅ | ✅ | ❌ |
 | `dev:views` | ✅ | ✅ | ✅ | ❌ |
+| `dev:db:column-usage` | ✅ | ✅ | ❌ | ❌ |
+| `dev:security:unprotected-routes` | ✅ | ✅ | ❌ | ❌ |
 | `dev:sql:trace` | ✅ | ✅ | ❌ | ❌ |
 | `dev:env:diff` | ✅ | ✅ | ❌ | ❌ |
 
