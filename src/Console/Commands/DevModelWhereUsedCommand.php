@@ -12,7 +12,7 @@ final class DevModelWhereUsedCommand extends Command
 {
     protected $signature = 'dev:model:where-used 
                             {model : The model class name or path}
-                            {--format=array : Output format (array, json, count)}
+                            {--format=table : Output format (table, json)}
                             {--output= : Save output to file}';
 
     protected $description = 'Find where a specific model is used throughout the application';
@@ -23,7 +23,10 @@ final class DevModelWhereUsedCommand extends Command
         $format = $this->option('format');
         $output = $this->option('output');
 
-        $this->info("Analyzing usage of model: {$model}");
+        // Only show progress message if not outputting JSON directly
+        if ($format !== 'json') {
+            $this->info("Analyzing usage of model: {$model}");
+        }
 
         try {
             // Use the specialized ModelUsageScanner
@@ -34,7 +37,11 @@ final class DevModelWhereUsedCommand extends Command
 
             if ($output) {
                 file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
-                $this->info("Results saved to: {$output}");
+                if ($format !== 'json') {
+                    $this->info("Results saved to: {$output}");
+                }
+            } elseif ($format === 'json') {
+                $this->line(json_encode($result, JSON_PRETTY_PRINT));
             } else {
                 $this->displayResults($result);
             }

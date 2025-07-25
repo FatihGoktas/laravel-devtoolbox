@@ -44,11 +44,12 @@ final class DevModelWhereUsedCommandTest extends TestCase
 
     public function test_it_can_handle_different_formats(): void
     {
+        // JSON format should NOT show progress message
         $this->artisan('dev:model:where-used User --format=json')
-            ->expectsOutput('Analyzing usage of model: User')
             ->assertExitCode(0);
 
-        $this->artisan('dev:model:where-used User --format=array')
+        // Table format (the default behavior) should show progress message
+        $this->artisan('dev:model:where-used User --format=table')
             ->expectsOutput('Analyzing usage of model: User')
             ->assertExitCode(0);
     }

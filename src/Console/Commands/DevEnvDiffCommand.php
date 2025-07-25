@@ -18,10 +18,13 @@ final class DevEnvDiffCommand extends Command
     public function handle(): int
     {
         $against = $this->option('against');
-        $this->option('format');
+        $format = $this->option('format');
         $output = $this->option('output');
 
-        $this->info("Comparing .env with {$against}...");
+        // Only show progress message if not outputting JSON directly
+        if ($format !== 'json') {
+            $this->info("Comparing .env with {$against}...");
+        }
 
         $envFile = base_path('.env');
         $compareFile = base_path($against);
@@ -60,7 +63,11 @@ final class DevEnvDiffCommand extends Command
 
         if ($output) {
             file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
-            $this->info("Results saved to: {$output}");
+            if ($format !== 'json') {
+                $this->info("Results saved to: {$output}");
+            }
+        } elseif ($format === 'json') {
+            $this->line(json_encode($result, JSON_PRETTY_PRINT));
         } else {
             $this->line(json_encode($result, JSON_PRETTY_PRINT));
         }

@@ -22,7 +22,10 @@ final class DevModelGraphCommand extends Command
         $output = $this->option('output');
         $direction = $this->option('direction');
 
-        $this->info('Generating model relationship graph...');
+        // Only show progress message if not outputting JSON directly
+        if ($format !== 'json') {
+            $this->info('Generating model relationship graph...');
+        }
 
         $modelData = $manager->scan('models', [
             'include_relationships' => true,
@@ -39,7 +42,9 @@ final class DevModelGraphCommand extends Command
             } else {
                 file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
             }
-            $this->info("Graph saved to: {$output}");
+            if ($format !== 'json') {
+                $this->info("Graph saved to: {$output}");
+            }
         } elseif ($format === 'mermaid') {
             $this->line($result);
         } else {

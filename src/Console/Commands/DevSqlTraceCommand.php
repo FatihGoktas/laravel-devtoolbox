@@ -16,6 +16,7 @@ final class DevSqlTraceCommand extends Command
                             {--method=GET : HTTP method to use}
                             {--parameters= : Route/query parameters as JSON}
                             {--headers= : Request headers as JSON}
+                            {--format=table : Output format (table, json)}
                             {--output= : Save output to file}';
 
     protected $description = 'Trace SQL queries executed during route execution';
@@ -27,6 +28,7 @@ final class DevSqlTraceCommand extends Command
         $method = $this->option('method');
         $parameters = $this->option('parameters');
         $headers = $this->option('headers');
+        $format = $this->option('format');
         $output = $this->option('output');
 
         if (! $route && ! $url) {
@@ -36,7 +38,11 @@ final class DevSqlTraceCommand extends Command
         }
 
         $target = $route ? "route '{$route}'" : "URL '{$url}'";
-        $this->info("Tracing SQL queries for {$target}...");
+
+        // Only show progress message if not outputting JSON directly
+        if ($format !== 'json') {
+            $this->info("Tracing SQL queries for {$target}...");
+        }
 
         try {
             $options = [
@@ -69,7 +75,11 @@ final class DevSqlTraceCommand extends Command
 
             if ($output) {
                 file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
-                $this->info("Results saved to: {$output}");
+                if ($format !== 'json') {
+                    $this->info("Results saved to: {$output}");
+                }
+            } elseif ($format === 'json') {
+                $this->line(json_encode($result, JSON_PRETTY_PRINT));
             } else {
                 $this->displayResults($result);
             }

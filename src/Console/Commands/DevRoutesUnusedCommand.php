@@ -20,7 +20,10 @@ final class DevRoutesUnusedCommand extends Command
         $format = $this->option('format');
         $output = $this->option('output');
 
-        $this->info('Analyzing routes for unused ones...');
+        // Only show progress message if not outputting JSON directly
+        if ($format !== 'json') {
+            $this->info('Analyzing routes for unused ones...');
+        }
 
         $result = $manager->scan('routes', [
             'detect_unused' => true,
@@ -29,7 +32,11 @@ final class DevRoutesUnusedCommand extends Command
 
         if ($output) {
             file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
-            $this->info("Results saved to: {$output}");
+            if ($format !== 'json') {
+                $this->info("Results saved to: {$output}");
+            }
+        } elseif ($format === 'json') {
+            $this->line(json_encode($result, JSON_PRETTY_PRINT));
         } else {
             $this->line(json_encode($result, JSON_PRETTY_PRINT));
         }
