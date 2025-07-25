@@ -1,15 +1,17 @@
 # Laravel Devtoolbox
 
-<div align="center">
-  <img src="new_logo.png" alt="Laravel Devtoolbox" width="100">
-  <p><strong>Swiss-army artisan CLI for Laravel — Scan, inspect, debug, and explore every aspect of your Laravel application from the command line.</strong></p>
+<img src="new_logo.png" alt="Laravel Devtoolbox" width="200">
 
-  [![Latest Version](https://img.shields.io/packagist/v/grazulex/laravel-devtoolbox)](https://packagist.org/packages/grazulex/laravel-devtoolbox)
-  [![Total Downloads](https://img.shields.io/packagist/dt/grazulex/laravel-devtoolbox)](https://packagist.org/packages/grazulex/laravel-devtoolbox)
-  [![License](https://img.shields.io/github/license/grazulex/laravel-devtoolbox)](https://github.com/grazulex/laravel-devtoolbox/blob/main/LICENSE)
-</div>
+Swiss-army artisan CLI for Laravel — Scan, inspect, debug, and explore every aspect of your Laravel application from the command line.
 
----
+[![Latest Version](https://img.shields.io/packagist/v/grazulex/laravel-devtoolbox.svg?style=flat-square)](https://packagist.org/packages/grazulex/laravel-devtoolbox)
+[![Total Downloads](https://img.shields.io/packagist/dt/grazulex/laravel-devtoolbox.svg?style=flat-square)](https://packagist.org/packages/grazulex/laravel-devtoolbox)
+[![License](https://img.shields.io/github/license/grazulex/laravel-devtoolbox.svg?style=flat-square)](https://github.com/Grazulex/laravel-devtoolbox/blob/main/LICENSE.md)
+[![PHP Version](https://img.shields.io/packagist/php-v/grazulex/laravel-devtoolbox.svg?style=flat-square)](https://php.net/)
+[![Laravel Version](https://img.shields.io/badge/laravel-12.x-ff2d20?style=flat-square&logo=laravel)](https://laravel.com/)
+[![Tests](https://img.shields.io/github/actions/workflow/status/grazulex/laravel-devtoolbox/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/Grazulex/laravel-devtoolbox/actions)
+[![Code Style](https://img.shields.io/badge/code%20style-pint-000000?style=flat-square&logo=laravel)](https://github.com/laravel/pint)
+
 
 ## ✨ Features
 
