@@ -357,7 +357,7 @@ final class ModelUsageScanner extends AbstractScanner
             $line = mb_trim($line);
 
             // Rechercher les utilisations dans les templates Blade
-            if (preg_match("/\\$\{$modelShortName}/", $line) ||
+            if (preg_match("/\\$" . $modelShortName . "/", $line) ||
                 preg_match("/@php.*{$modelShortName}/", $line) ||
                 preg_match("/{{.*{$modelShortName}/", $line)) {
                 $usages[] = [

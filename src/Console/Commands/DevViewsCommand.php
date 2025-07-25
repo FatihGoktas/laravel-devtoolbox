@@ -43,7 +43,7 @@ final class DevViewsCommand extends Command
 
     private function displayResults(array $result): void
     {
-        $data = $result['data'] ?? [];
+        $data = $result['data']['views'] ?? [];
         $this->line('Found '.count($data).' views:');
         $this->newLine();
 
