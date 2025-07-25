@@ -22,7 +22,7 @@ final class DevSecurityUnprotectedRoutesCommand extends Command
     {
         $criticalOnly = $this->option('critical-only');
         $exclude = $this->option('exclude');
-        $format = $this->option('format');
+        $this->option('format');
         $output = $this->option('output');
 
         $this->info('🔐 Scanning for unprotected routes...');
@@ -44,7 +44,8 @@ final class DevSecurityUnprotectedRoutesCommand extends Command
 
             return self::SUCCESS;
         } catch (Exception $e) {
-            $this->error('Error scanning security: ' . $e->getMessage());
+            $this->error('Error scanning security: '.$e->getMessage());
+
             return self::FAILURE;
         }
     }
@@ -61,7 +62,7 @@ final class DevSecurityUnprotectedRoutesCommand extends Command
         $this->newLine();
 
         // Unprotected Routes
-        if (!empty($unprotectedRoutes)) {
+        if (! empty($unprotectedRoutes)) {
             $this->error('🚨 Unprotected Routes Found:');
             $this->displayUnprotectedRoutes($unprotectedRoutes);
         } else {
@@ -71,7 +72,7 @@ final class DevSecurityUnprotectedRoutesCommand extends Command
         $this->newLine();
 
         // CSRF Vulnerable Routes
-        if (!empty($csrfVulnerableRoutes)) {
+        if (! empty($csrfVulnerableRoutes)) {
             $this->error('🛡️ CSRF Vulnerable Routes Found:');
             $this->displayCsrfVulnerableRoutes($csrfVulnerableRoutes);
         } else {
@@ -86,7 +87,7 @@ final class DevSecurityUnprotectedRoutesCommand extends Command
     {
         $color = 'red';
         $emoji = '🔴';
-        
+
         if ($score >= 80) {
             $color = 'green';
             $emoji = '🟢';
@@ -107,16 +108,16 @@ final class DevSecurityUnprotectedRoutesCommand extends Command
 
             $methods = implode('|', $route['methods']);
             $this->line("<fg={$severityColor}>{$severityEmoji} [{$severity}] {$methods} {$route['uri']}</>");
-            
-            if (!empty($route['name'])) {
+
+            if (! empty($route['name'])) {
                 $this->line("   📛 Name: {$route['name']}");
             }
-            
-            if (!empty($route['action'])) {
+
+            if (! empty($route['action'])) {
                 $this->line("   🎯 Action: {$route['action']}");
             }
 
-            if (!empty($route['middleware'])) {
+            if (! empty($route['middleware'])) {
                 $middleware = implode(', ', $route['middleware']);
                 $this->line("   🛡️ Current Middleware: {$middleware}");
             }
@@ -131,11 +132,11 @@ final class DevSecurityUnprotectedRoutesCommand extends Command
         foreach ($routes as $route) {
             $methods = implode('|', $route['methods']);
             $this->line("<fg=red>🛡️ [CSRF] {$methods} {$route['uri']}</>");
-            
-            if (!empty($route['name'])) {
+
+            if (! empty($route['name'])) {
                 $this->line("   📛 Name: {$route['name']}");
             }
-            
+
             $this->line("   💡 Recommendation: {$route['recommendation']}");
             $this->newLine();
         }

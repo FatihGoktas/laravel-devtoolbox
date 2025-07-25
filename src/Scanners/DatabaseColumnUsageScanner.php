@@ -116,10 +116,8 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
                     return array_map(fn ($table) => $table->$tableColumnName ?? $table->{'Tables_in_'.mb_strtolower($databaseName)}, $tables);
             }
         } catch (Exception $e) {
-            // Fallback: try to get table names from Schema
-            return collect(Schema::getAllTables())->map(function ($table) {
-                return (array) $table;
-            })->flatten()->toArray();
+            // Fallback: return empty array if database queries fail
+            return [];
         }
     }
 
@@ -143,7 +141,7 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
                 'is_fillable' => $usage['is_fillable'],
                 'is_hidden' => $usage['is_hidden'],
                 'is_casted' => $usage['is_casted'],
-                'recommendations' => $this->getColumnRecommendations($tableName, $columnName, $usage),
+                'recommendations' => $this->getColumnRecommendations($columnName, $usage),
             ];
         }
 
@@ -160,13 +158,13 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
                 continue;
             }
 
-            $foundFiles = $this->scanDirectoryForColumn($path, $tableName, $columnName, $options);
+            $foundFiles = $this->scanDirectoryForColumn($path, $tableName, $columnName);
             $files = array_merge($files, $foundFiles);
         }
 
         // Get model-specific information
         $modelClass = $this->findModelForTable($tableName);
-        if ($modelClass) {
+        if ($modelClass !== null && $modelClass !== '' && $modelClass !== '0') {
             $modelInfo = $this->analyzeModelColumnUsage($modelClass, $columnName);
         }
 
@@ -179,7 +177,7 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
         ];
     }
 
-    private function scanDirectoryForColumn(string $path, string $tableName, string $columnName, array $options): array
+    private function scanDirectoryForColumn(string $path, string $tableName, string $columnName): array
     {
         $files = [];
         $allFiles = File::allFiles($path);
@@ -194,12 +192,12 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
 
             $content = File::get($file->getPathname());
 
-            if ($this->contentContainsColumn($content, $tableName, $columnName)) {
+            if ($this->contentContainsColumn($content, $columnName)) {
                 $files[] = [
                     'path' => $file->getPathname(),
                     'relative_path' => str_replace(base_path().'/', '', $file->getPathname()),
                     'type' => $this->determineFileType($file->getPathname()),
-                    'matches' => $this->findColumnMatches($content, $tableName, $columnName),
+                    'matches' => $this->findColumnMatches($content, $columnName),
                 ];
             }
         }
@@ -207,7 +205,7 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
         return $files;
     }
 
-    private function contentContainsColumn(string $content, string $tableName, string $columnName): bool
+    private function contentContainsColumn(string $content, string $columnName): bool
     {
         // Various patterns to look for column usage
         $patterns = [
@@ -234,7 +232,7 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
         return false;
     }
 
-    private function findColumnMatches(string $content, string $tableName, string $columnName): array
+    private function findColumnMatches(string $content, string $columnName): array
     {
         $matches = [];
         $lines = explode("\n", $content);
@@ -267,7 +265,7 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
             if (File::exists($path)) {
                 $namespace = $this->extractNamespace(File::get($path));
 
-                return $namespace ? "{$namespace}\\{$modelName}" : "App\\{$modelName}";
+                return $namespace !== null && $namespace !== '' && $namespace !== '0' ? "{$namespace}\\{$modelName}" : "App\\{$modelName}";
             }
         }
 
@@ -345,7 +343,7 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
         return null;
     }
 
-    private function getColumnRecommendations(string $tableName, string $columnName, array $usage): array
+    private function getColumnRecommendations(string $columnName, array $usage): array
     {
         $recommendations = [];
 
@@ -373,7 +371,7 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
             'decimal' => ['price', 'amount', 'cost', 'total'],
         ];
 
-        foreach ($castSuggestions as $castType => $patterns) {
+        foreach ($castSuggestions as $patterns) {
             foreach ($patterns as $pattern) {
                 if (str_contains($columnName, $pattern)) {
                     return true;
@@ -395,7 +393,7 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
             $tableUsed = 0;
             $tableUnused = 0;
 
-            foreach ($columns as $columnName => $info) {
+            foreach ($columns as $info) {
                 $totalColumns++;
                 if ($info['used']) {
                     $usedColumns++;

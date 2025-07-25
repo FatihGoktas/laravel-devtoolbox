@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Grazulex\LaravelDevtoolbox\Console\Commands;
 
+use Exception;
 use Grazulex\LaravelDevtoolbox\DevtoolboxManager;
 use Illuminate\Console\Command;
 
 final class DevModelsCommand extends Command
 {
     protected $signature = 'dev:models {--format=table : Output format (table, json)} {--output= : Output file path}';
-    
+
     protected $description = 'Scan and list all Eloquent models';
 
     public function handle(DevtoolboxManager $manager): int
@@ -33,8 +34,9 @@ final class DevModelsCommand extends Command
             }
 
             return self::SUCCESS;
-        } catch (\Exception $e) {
-            $this->error("Error scanning models: " . $e->getMessage());
+        } catch (Exception $e) {
+            $this->error('Error scanning models: '.$e->getMessage());
+
             return self::FAILURE;
         }
     }
@@ -42,7 +44,7 @@ final class DevModelsCommand extends Command
     private function displayResults(array $result): void
     {
         $data = $result['data'] ?? [];
-        $this->line("Found " . count($data) . " models:");
+        $this->line('Found '.count($data).' models:');
         $this->newLine();
 
         foreach ($data as $model) {
@@ -51,8 +53,8 @@ final class DevModelsCommand extends Command
             if (isset($model['file_path'])) {
                 $this->line("   File: {$model['file_path']}");
             }
-            if (isset($model['relationships']) && !empty($model['relationships'])) {
-                $this->line("   Relationships: " . implode(', ', array_keys($model['relationships'])));
+            if (isset($model['relationships']) && ! empty($model['relationships'])) {
+                $this->line('   Relationships: '.implode(', ', array_keys($model['relationships'])));
             }
             $this->newLine();
         }

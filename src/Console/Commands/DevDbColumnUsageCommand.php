@@ -24,7 +24,7 @@ final class DevDbColumnUsageCommand extends Command
         $tables = $this->option('table');
         $exclude = $this->option('exclude');
         $unusedOnly = $this->option('unused-only');
-        $format = $this->option('format');
+        $this->option('format');
         $output = $this->option('output');
 
         $this->info('📊 Analyzing database column usage...');
@@ -182,10 +182,10 @@ final class DevDbColumnUsageCommand extends Command
             }
         }
 
-        if (! empty($unusedColumns) || ! empty($allRecommendations)) {
+        if ($unusedColumns !== [] || $allRecommendations !== []) {
             $this->info('🔧 Action Items:');
 
-            if (! empty($unusedColumns)) {
+            if ($unusedColumns !== []) {
                 $this->line('');
                 $this->warn('⚠️  Unused Columns (consider removing):');
                 foreach (array_slice($unusedColumns, 0, 10) as $column) {
@@ -198,7 +198,7 @@ final class DevDbColumnUsageCommand extends Command
                 }
             }
 
-            if (! empty($allRecommendations)) {
+            if ($allRecommendations !== []) {
                 $uniqueRecommendations = array_unique($allRecommendations);
                 $this->line('');
                 $this->info('💡 General Recommendations:');

@@ -129,7 +129,7 @@ final class SecurityScanner extends AbstractScanner
 
             // Check only POST, PUT, PATCH, DELETE methods
             $dangerousMethods = array_intersect($methods, ['POST', 'PUT', 'PATCH', 'DELETE']);
-            if (empty($dangerousMethods)) {
+            if ($dangerousMethods === []) {
                 continue;
             }
 
@@ -186,7 +186,7 @@ final class SecurityScanner extends AbstractScanner
 
         // High: POST/PUT/DELETE without auth
         $dangerousMethods = array_intersect($methods, ['POST', 'PUT', 'PATCH', 'DELETE']);
-        if (! empty($dangerousMethods)) {
+        if ($dangerousMethods !== []) {
             return 'high';
         }
 
@@ -205,7 +205,7 @@ final class SecurityScanner extends AbstractScanner
         }
 
         $dangerousMethods = array_intersect($methods, ['POST', 'PUT', 'PATCH', 'DELETE']);
-        if (! empty($dangerousMethods)) {
+        if ($dangerousMethods !== []) {
             return 'Add auth middleware to protect data modification endpoints';
         }
 
@@ -218,8 +218,6 @@ final class SecurityScanner extends AbstractScanner
         if ($totalRoutes === 0) {
             return 100;
         }
-
-        $unprotectedCount = count($result['unprotected_routes']);
         $csrfVulnerableCount = count($result['csrf_vulnerable_routes']);
 
         // Calculate weighted score
