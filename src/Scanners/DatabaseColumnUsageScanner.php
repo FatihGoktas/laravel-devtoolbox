@@ -169,12 +169,28 @@ final class DatabaseColumnUsageScanner extends AbstractScanner
         }
 
         return [
-            'files' => array_unique($files),
+            'files' => $this->removeDuplicateFiles($files),
             'model_info' => $modelInfo,
             'is_fillable' => $modelInfo['is_fillable'] ?? false,
             'is_hidden' => $modelInfo['is_hidden'] ?? false,
             'is_casted' => $modelInfo['is_casted'] ?? false,
         ];
+    }
+
+    private function removeDuplicateFiles(array $files): array
+    {
+        $uniqueFiles = [];
+        $seenPaths = [];
+
+        foreach ($files as $file) {
+            $path = $file['path'] ?? '';
+            if (!in_array($path, $seenPaths)) {
+                $uniqueFiles[] = $file;
+                $seenPaths[] = $path;
+            }
+        }
+
+        return $uniqueFiles;
     }
 
     private function scanDirectoryForColumn(string $path, string $tableName, string $columnName): array
