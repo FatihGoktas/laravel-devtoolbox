@@ -11,6 +11,7 @@ use Grazulex\LaravelDevtoolbox\Scanners\ModelScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\ModelUsageScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\RouteScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\ServiceScanner;
+use Grazulex\LaravelDevtoolbox\Scanners\SqlTraceScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\ViewScanner;
 use Illuminate\Contracts\Foundation\Application;
 use InvalidArgumentException;
@@ -101,5 +102,6 @@ final class DevtoolboxManager
         $this->registry->register('middleware', new MiddlewareScanner($this->app));
         $this->registry->register('views', new ViewScanner($this->app));
         $this->registry->register('model-usage', new ModelUsageScanner($this->app));
+        $this->registry->register('sql-trace', new SqlTraceScanner($this->app));
     }
 }
