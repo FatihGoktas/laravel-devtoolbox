@@ -20,13 +20,25 @@ final class CommandRegistrationTest extends TestCase
 
         // Test individual commands registration
         $expectedCommands = [
+            // Core commands
             'dev:models',
             'dev:routes',
             'dev:commands',
             'dev:services',
             'dev:middleware',
             'dev:views',
+
+            // Advanced analysis commands
+            'dev:scan',
+            'dev:routes:unused',
             'dev:model:where-used',
+            'dev:model:graph',
+            'dev:env:diff',
+            'dev:sql:trace',
+
+            // Security and performance commands
+            'dev:security:unprotected-routes',
+            'dev:db:column-usage',
         ];
 
         foreach ($expectedCommands as $command) {

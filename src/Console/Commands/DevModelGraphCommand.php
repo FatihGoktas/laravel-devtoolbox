@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 final class DevModelGraphCommand extends Command
 {
     protected $signature = 'dev:model:graph 
-                            {--format=mermaid : Output format (mermaid, json)}
+                            {--format=table : Output format (table, json)}
                             {--output= : Save output to file}
                             {--direction=TB : Graph direction (TB, BT, LR, RL)}';
 
@@ -20,7 +20,7 @@ final class DevModelGraphCommand extends Command
     {
         $format = $this->option('format');
         $output = $this->option('output');
-        $direction = $this->option('direction');
+        $this->option('direction');
 
         // Only show progress message if not outputting JSON directly
         if ($format !== 'json') {
@@ -31,48 +31,43 @@ final class DevModelGraphCommand extends Command
             'include_relationships' => true,
         ]);
 
-        $result = match ($format) {
-            'mermaid' => $this->generateMermaidGraph($modelData, $direction),
-            default => $modelData,
-        };
+        // Always use the model data as result (no more mermaid format)
+        $result = $modelData;
 
         if ($output) {
-            if ($format === 'mermaid') {
-                file_put_contents($output, $result);
-            } else {
-                file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
-            }
+            file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
             if ($format !== 'json') {
                 $this->info("Graph saved to: {$output}");
             }
-        } elseif ($format === 'mermaid') {
-            $this->line($result);
-        } else {
+        } elseif ($format === 'json') {
             $this->line(json_encode($result, JSON_PRETTY_PRINT));
+        } else {
+            $this->displayResults($result);
         }
 
         return self::SUCCESS;
     }
 
-    private function generateMermaidGraph(array $modelData, string $direction): string
+    private function displayResults(array $result): void
     {
-        $graph = "graph {$direction}\n";
+        $data = $result['data'] ?? [];
+        $this->line('Found '.count($data).' models with relationships:');
+        $this->newLine();
 
-        // This is a simplified implementation
-        if (isset($modelData['data']['data']) && is_array($modelData['data']['data'])) {
-            foreach ($modelData['data']['data'] as $model) {
-                $modelName = $model['name'] ?? 'Unknown';
-                $graph .= "    {$modelName}[{$modelName}]\n";
+        foreach ($data as $model) {
+            $modelName = $model['name'] ?? 'Unknown';
+            $this->line("📄 {$modelName}");
 
-                if (isset($model['relationships']) && is_array($model['relationships'])) {
-                    foreach ($model['relationships'] as $relationship) {
-                        $relName = $relationship['name'] ?? 'unknown';
-                        $graph .= "    {$modelName} --> {$relName}\n";
-                    }
+            if (isset($model['relationships']) && ! empty($model['relationships'])) {
+                foreach ($model['relationships'] as $relationshipName => $relationshipData) {
+                    $type = $relationshipData['type'] ?? 'unknown';
+                    $related = $relationshipData['related'] ?? 'unknown';
+                    $this->line("   → {$relationshipName}: {$type} ({$related})");
                 }
+            } else {
+                $this->line('   (no relationships found)');
             }
+            $this->newLine();
         }
-
-        return $graph;
     }
 }
