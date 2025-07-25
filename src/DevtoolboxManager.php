@@ -6,10 +6,12 @@ namespace Grazulex\LaravelDevtoolbox;
 
 use Grazulex\LaravelDevtoolbox\Registry\ScannerRegistry;
 use Grazulex\LaravelDevtoolbox\Scanners\CommandScanner;
+use Grazulex\LaravelDevtoolbox\Scanners\DatabaseColumnUsageScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\MiddlewareScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\ModelScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\ModelUsageScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\RouteScanner;
+use Grazulex\LaravelDevtoolbox\Scanners\SecurityScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\ServiceScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\SqlTraceScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\ViewScanner;
@@ -103,5 +105,7 @@ final class DevtoolboxManager
         $this->registry->register('views', new ViewScanner($this->app));
         $this->registry->register('model-usage', new ModelUsageScanner($this->app));
         $this->registry->register('sql-trace', new SqlTraceScanner($this->app));
+        $this->registry->register('security', new SecurityScanner($this->app));
+        $this->registry->register('db-column-usage', new DatabaseColumnUsageScanner($this->app));
     }
 }

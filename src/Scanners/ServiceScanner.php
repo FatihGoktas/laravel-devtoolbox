@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Grazulex\LaravelDevtoolbox\Scanners;
 
+use Closure;
 use ReflectionClass;
 use ReflectionException;
 
@@ -67,12 +68,12 @@ final class ServiceScanner extends AbstractScanner
     private function analyzeService(string $abstract, array $binding): array
     {
         $concrete = $binding['concrete'] ?? null;
-        
+
         // Convert Closure to readable string
-        if ($concrete instanceof \Closure) {
+        if ($concrete instanceof Closure) {
             $concrete = 'Closure';
         }
-        
+
         return [
             'abstract' => $abstract,
             'concrete' => $concrete,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Grazulex\LaravelDevtoolbox;
 
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevCommandsCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevDbColumnUsageCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevEnvDiffCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevMiddlewareCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevModelGraphCommand;
@@ -13,6 +14,7 @@ use Grazulex\LaravelDevtoolbox\Console\Commands\DevModelWhereUsedCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevRoutesCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevRoutesUnusedCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevScanCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevSecurityUnprotectedRoutesCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevServicesCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevSqlTraceCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevViewsCommand;
@@ -65,6 +67,8 @@ final class LaravelDevtoolboxServiceProvider extends ServiceProvider
                 DevServicesCommand::class,
                 DevMiddlewareCommand::class,
                 DevViewsCommand::class,
+                DevSecurityUnprotectedRoutesCommand::class,
+                DevDbColumnUsageCommand::class,
             ]);
         }
 

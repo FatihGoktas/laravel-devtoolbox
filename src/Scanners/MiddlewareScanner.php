@@ -68,6 +68,7 @@ final class MiddlewareScanner extends AbstractScanner
         if ($options['include_usage'] ?? false) {
             // Add usage information if requested
             $usage = $this->getMiddlewareUsage();
+
             return $this->addMetadata([
                 'middleware' => $middlewareList,
                 'usage' => $usage,

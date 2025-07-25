@@ -56,7 +56,7 @@ abstract class AbstractScanner implements ScannerInterface
      */
     protected function addMetadata(array $data, array $options): array
     {
-        if (!($options['include_metadata'] ?? true)) {
+        if (! ($options['include_metadata'] ?? true)) {
             return $data;
         }
 

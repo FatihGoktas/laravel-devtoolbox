@@ -316,7 +316,7 @@ final class ModelUsageScanner extends AbstractScanner
             $line = mb_trim($line);
 
             // Rechercher les uses
-            if (preg_match("/use\s+" . preg_quote($modelClass, '/') . ";/", $line)) {
+            if (preg_match("/use\s+".preg_quote($modelClass, '/').';/', $line)) {
                 $usages[] = [
                     'type' => 'import',
                     'line' => $lineNumber + 1,
@@ -359,7 +359,7 @@ final class ModelUsageScanner extends AbstractScanner
 
             // Rechercher les utilisations dans les templates Blade
             $quotedModelShortName = preg_quote($modelShortName, '/');
-            if (preg_match("/\\$" . $quotedModelShortName . "/", $line) ||
+            if (preg_match('/\$'.$quotedModelShortName.'/', $line) ||
                 preg_match("/@php.*{$quotedModelShortName}/", $line) ||
                 preg_match("/{{.*{$quotedModelShortName}/", $line)) {
                 $usages[] = [
@@ -382,7 +382,7 @@ final class ModelUsageScanner extends AbstractScanner
             $line = mb_trim($line);
 
             // Rechercher les méthodes de relation qui retournent le modèle
-            $pattern = '/return\s+\$this->(hasOne|hasMany|belongsTo|belongsToMany)\s*\(\s*' . preg_quote($modelShortName, '/') . '::/';
+            $pattern = '/return\s+\$this->(hasOne|hasMany|belongsTo|belongsToMany)\s*\(\s*'.preg_quote($modelShortName, '/').'::/';
             if (preg_match($pattern, $line)) {
                 $relationships[] = [
                     'type' => 'relationship',
