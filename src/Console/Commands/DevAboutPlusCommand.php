@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Grazulex\LaravelDevtoolbox\Console\Commands;
 
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use PDO;
 
 final class DevAboutPlusCommand extends Command
 {
@@ -44,8 +46,9 @@ final class DevAboutPlusCommand extends Command
             }
 
             return self::SUCCESS;
-        } catch (\Exception $e) {
-            $this->error('Error gathering application information: ' . $e->getMessage());
+        } catch (Exception $e) {
+            $this->error('Error gathering application information: '.$e->getMessage());
+
             return self::FAILURE;
         }
     }
@@ -79,7 +82,7 @@ final class DevAboutPlusCommand extends Command
     private function getApplicationInfo(): array
     {
         $app = app();
-        
+
         return [
             'name' => config('app.name'),
             'version' => $app->version(),
@@ -104,7 +107,7 @@ final class DevAboutPlusCommand extends Command
         ];
 
         if ($extended) {
-            $info = array_merge($info, [
+            return array_merge($info, [
                 'php_extensions' => array_slice(get_loaded_extensions(), 0, 20), // First 20
                 'total_extensions' => count(get_loaded_extensions()),
                 'memory_limit' => ini_get('memory_limit'),
@@ -122,8 +125,8 @@ final class DevAboutPlusCommand extends Command
     private function getDependenciesInfo(): array
     {
         $composerLock = base_path('composer.lock');
-        
-        if (!file_exists($composerLock)) {
+
+        if (! file_exists($composerLock)) {
             return ['status' => 'composer.lock not found'];
         }
 
@@ -142,15 +145,15 @@ final class DevAboutPlusCommand extends Command
 
         foreach ($packages as $package) {
             $name = $package['name'];
-            
+
             if (str_starts_with($name, 'laravel/')) {
                 $stats['laravel_packages']++;
-                $laravelPackages[] = $name . ' (' . $package['version'] . ')';
+                $laravelPackages[] = $name.' ('.$package['version'].')';
             }
-            
+
             if (str_starts_with($name, 'symfony/')) {
                 $stats['symphony_packages']++;
-                $symphonyPackages[] = $name . ' (' . $package['version'] . ')';
+                $symphonyPackages[] = $name.' ('.$package['version'].')';
             }
         }
 
@@ -188,7 +191,7 @@ final class DevAboutPlusCommand extends Command
         }
 
         // Performance recommendations
-        if (!$info['opcache']['enabled']) {
+        if (! $info['opcache']['enabled']) {
             $info['recommendations'][] = 'Enable OPcache for better performance';
         }
 
@@ -196,7 +199,7 @@ final class DevAboutPlusCommand extends Command
             $info['recommendations'][] = 'Disable debug mode in production';
         }
 
-        if (!config('app.env') === 'production') {
+        if (config('app.env') !== 'production') {
             $info['recommendations'][] = 'Set APP_ENV=production for optimal performance';
         }
 
@@ -206,7 +209,7 @@ final class DevAboutPlusCommand extends Command
     private function getSecurityInfo(): array
     {
         $info = [
-            'app_key_set' => !empty(config('app.key')),
+            'app_key_set' => ! empty(config('app.key')),
             'https_enabled' => request()->isSecure(),
             'session_driver' => config('session.driver'),
             'session_secure' => config('session.secure'),
@@ -216,7 +219,7 @@ final class DevAboutPlusCommand extends Command
         ];
 
         // Security recommendations
-        if (!$info['app_key_set']) {
+        if (! $info['app_key_set']) {
             $info['vulnerabilities'][] = 'Application key is not set';
             $info['recommendations'][] = 'Run "php artisan key:generate"';
         }
@@ -226,7 +229,7 @@ final class DevAboutPlusCommand extends Command
             $info['recommendations'][] = 'Set APP_DEBUG=false in production';
         }
 
-        if (!$info['https_enabled'] && app()->environment('production')) {
+        if (! $info['https_enabled'] && app()->environment('production')) {
             $info['recommendations'][] = 'Enable HTTPS in production';
         }
 
@@ -246,19 +249,19 @@ final class DevAboutPlusCommand extends Command
 
         foreach (config('filesystems.disks', []) as $name => $config) {
             $disk = Storage::disk($name);
-            
+
             try {
                 $info['disks'][$name] = [
                     'driver' => $config['driver'],
                     'accessible' => true,
                 ];
-                
+
                 if ($config['driver'] === 'local') {
                     $path = $config['root'] ?? storage_path('app');
                     $info['disks'][$name]['path'] = $path;
                     $info['disks'][$name]['writable'] = is_writable($path);
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $info['disks'][$name] = [
                     'driver' => $config['driver'],
                     'accessible' => false,
@@ -275,7 +278,7 @@ final class DevAboutPlusCommand extends Command
         try {
             $defaultConnection = config('database.default');
             $connections = config('database.connections', []);
-            
+
             $info = [
                 'default_connection' => $defaultConnection,
                 'connections' => [],
@@ -284,13 +287,13 @@ final class DevAboutPlusCommand extends Command
             foreach ($connections as $name => $config) {
                 try {
                     $pdo = DB::connection($name)->getPdo();
-                    
+
                     $info['connections'][$name] = [
                         'driver' => $config['driver'],
                         'status' => 'connected',
-                        'version' => $pdo->getAttribute(\PDO::ATTR_SERVER_VERSION),
+                        'version' => $pdo->getAttribute(PDO::ATTR_SERVER_VERSION),
                     ];
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $info['connections'][$name] = [
                         'driver' => $config['driver'],
                         'status' => 'failed',
@@ -300,7 +303,7 @@ final class DevAboutPlusCommand extends Command
             }
 
             return $info;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return ['error' => $e->getMessage()];
         }
     }
@@ -316,18 +319,18 @@ final class DevAboutPlusCommand extends Command
             foreach (config('cache.stores', []) as $name => $config) {
                 try {
                     $cache = Cache::store($name);
-                    
+
                     // Test cache functionality
-                    $testKey = 'devtoolbox_test_' . time();
+                    $testKey = 'devtoolbox_test_'.time();
                     $cache->put($testKey, 'test', 1);
                     $canRead = $cache->get($testKey) === 'test';
                     $cache->forget($testKey);
-                    
+
                     $info['stores'][$name] = [
                         'driver' => $config['driver'],
                         'status' => $canRead ? 'working' : 'read_failed',
                     ];
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $info['stores'][$name] = [
                         'driver' => $config['driver'],
                         'status' => 'failed',
@@ -337,7 +340,7 @@ final class DevAboutPlusCommand extends Command
             }
 
             return $info;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return ['error' => $e->getMessage()];
         }
     }
@@ -358,10 +361,10 @@ final class DevAboutPlusCommand extends Command
 
         // Application Info
         $this->displaySection('Application', $data['application']);
-        
+
         // Environment Info
         $this->displaySection('Environment', $data['environment']);
-        
+
         // Dependencies Info
         $this->displaySection('Dependencies', $data['dependencies']);
 
@@ -396,7 +399,7 @@ final class DevAboutPlusCommand extends Command
     private function displaySection(string $title, array $data): void
     {
         $this->comment("▶ {$title}");
-        
+
         $tableData = [];
         foreach ($data as $key => $value) {
             if (is_array($value)) {
@@ -404,10 +407,10 @@ final class DevAboutPlusCommand extends Command
             } elseif (is_bool($value)) {
                 $value = $value ? '✅ Yes' : '❌ No';
             }
-            
+
             $tableData[] = [ucfirst(str_replace('_', ' ', $key)), $value];
         }
-        
+
         $this->table(['Property', 'Value'], $tableData);
         $this->newLine();
     }
@@ -415,49 +418,49 @@ final class DevAboutPlusCommand extends Command
     private function displayPerformanceSection(array $performance): void
     {
         $this->comment('▶ Performance');
-        
+
         $this->line("💾 Memory Usage: {$performance['memory_usage']['current']} (Peak: {$performance['memory_usage']['peak']})");
-        $this->line("⚡ OPcache: " . ($performance['opcache']['enabled'] ? '✅ Enabled' : '❌ Disabled'));
-        
+        $this->line('⚡ OPcache: '.($performance['opcache']['enabled'] ? '✅ Enabled' : '❌ Disabled'));
+
         if ($performance['opcache']['hit_rate']) {
             $this->line("📊 OPcache Hit Rate: {$performance['opcache']['hit_rate']}%");
         }
-        
-        if (!empty($performance['recommendations'])) {
+
+        if (! empty($performance['recommendations'])) {
             $this->newLine();
             $this->warn('⚠️  Performance Recommendations:');
             foreach ($performance['recommendations'] as $recommendation) {
                 $this->line("   • {$recommendation}");
             }
         }
-        
+
         $this->newLine();
     }
 
     private function displaySecuritySection(array $security): void
     {
         $this->comment('▶ Security');
-        
-        $this->line("🔑 App Key: " . ($security['app_key_set'] ? '✅ Set' : '❌ Missing'));
-        $this->line("🔒 HTTPS: " . ($security['https_enabled'] ? '✅ Enabled' : '❌ Disabled'));
-        $this->line("🛡️  CSRF Protection: " . ($security['csrf_protection'] ? '✅ Available' : '❌ Missing'));
-        
-        if (!empty($security['vulnerabilities'])) {
+
+        $this->line('🔑 App Key: '.($security['app_key_set'] ? '✅ Set' : '❌ Missing'));
+        $this->line('🔒 HTTPS: '.($security['https_enabled'] ? '✅ Enabled' : '❌ Disabled'));
+        $this->line('🛡️  CSRF Protection: '.($security['csrf_protection'] ? '✅ Available' : '❌ Missing'));
+
+        if (! empty($security['vulnerabilities'])) {
             $this->newLine();
             $this->error('🚨 Security Vulnerabilities:');
             foreach ($security['vulnerabilities'] as $vulnerability) {
                 $this->line("   • {$vulnerability}");
             }
         }
-        
-        if (!empty($security['recommendations'])) {
+
+        if (! empty($security['recommendations'])) {
             $this->newLine();
             $this->warn('🔐 Security Recommendations:');
             foreach ($security['recommendations'] as $recommendation) {
                 $this->line("   • {$recommendation}");
             }
         }
-        
+
         $this->newLine();
     }
 
@@ -467,9 +470,9 @@ final class DevAboutPlusCommand extends Command
         $bytes = max($bytes, 0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
         $pow = min($pow, count($units) - 1);
-        
+
         $bytes /= pow(1024, $pow);
-        
-        return round($bytes, 2) . ' ' . $units[$pow];
+
+        return round($bytes, 2).' '.$units[$pow];
     }
 }

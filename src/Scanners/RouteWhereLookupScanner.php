@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Grazulex\LaravelDevtoolbox\Scanners;
 
+use Exception;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Route as RouteFacade;
-use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionNamedType;
 
 final class RouteWhereLookupScanner extends AbstractScanner
 {
@@ -56,7 +57,7 @@ final class RouteWhereLookupScanner extends AbstractScanner
         $routes = [];
         $allRoutes = RouteFacade::getRoutes();
 
-        foreach ($allRoutes as $route) {
+        foreach ($allRoutes->getRoutes() as $route) {
             if ($this->routeMatchesTarget($route, $target)) {
                 $routes[] = $this->analyzeRoute($route, $options);
             }
@@ -68,18 +69,13 @@ final class RouteWhereLookupScanner extends AbstractScanner
     private function routeMatchesTarget(Route $route, string $target): bool
     {
         $action = $route->getAction();
-        
-        if (!isset($action['controller'])) {
+
+        if (! isset($action['controller'])) {
             return false;
         }
 
         $controller = $action['controller'];
-        
-        // Handle full controller@method notation
-        if (str_contains($target, '@')) {
-            return str_contains($controller, $target);
-        }
-        
+
         // Handle just controller name
         return str_contains($controller, $target);
     }
@@ -87,7 +83,7 @@ final class RouteWhereLookupScanner extends AbstractScanner
     private function analyzeRoute(Route $route, array $options): array
     {
         $action = $route->getAction();
-        
+
         $routeData = [
             'uri' => $route->uri(),
             'methods' => $route->methods(),
@@ -107,13 +103,13 @@ final class RouteWhereLookupScanner extends AbstractScanner
     private function getRouteMiddleware(Route $route): array
     {
         $middleware = $route->middleware();
-        
+
         // Clean up middleware names
-        return array_map(function ($middleware) {
+        return array_map(function ($middleware): string {
             if (is_string($middleware)) {
                 return $middleware;
             }
-            
+
             return is_object($middleware) ? get_class($middleware) : 'Unknown';
         }, $middleware);
     }
@@ -122,8 +118,8 @@ final class RouteWhereLookupScanner extends AbstractScanner
     {
         // Extract controller class name
         $controllerClass = $this->extractControllerClass($target);
-        
-        if (!$controllerClass || !class_exists($controllerClass)) {
+
+        if ($controllerClass === '' || $controllerClass === '0' || ! class_exists($controllerClass)) {
             return [
                 'exists' => false,
                 'class' => $controllerClass,
@@ -144,11 +140,11 @@ final class RouteWhereLookupScanner extends AbstractScanner
         return $info;
     }
 
-    private function extractControllerClass(string $target): ?string
+    private function extractControllerClass(string $target): string
     {
         // Remove @method if present
-        $controller = str_contains($target, '@') ? 
-            explode('@', $target)[0] : 
+        $controller = str_contains($target, '@') ?
+            explode('@', $target)[0] :
             $target;
 
         // If it's already a full class name, return it
@@ -164,7 +160,7 @@ final class RouteWhereLookupScanner extends AbstractScanner
         ];
 
         foreach ($possibleNamespaces as $namespace) {
-            $fullClass = $namespace . $controller;
+            $fullClass = $namespace.$controller;
             if (class_exists($fullClass)) {
                 return $fullClass;
             }
@@ -177,8 +173,9 @@ final class RouteWhereLookupScanner extends AbstractScanner
     {
         try {
             $reflection = new ReflectionClass($controllerClass);
+
             return $reflection->getFileName() ?: null;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }
@@ -191,17 +188,24 @@ final class RouteWhereLookupScanner extends AbstractScanner
 
             foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
                 // Skip magic methods and inherited methods from base classes
-                if (str_starts_with($method->getName(), '__') || 
-                    $method->getDeclaringClass()->getName() !== $controllerClass) {
+                if (str_starts_with($method->getName(), '__')) {
                     continue;
                 }
-
+                if ($method->getDeclaringClass()->getName() !== $controllerClass) {
+                    continue;
+                }
                 $methods[] = [
                     'name' => $method->getName(),
-                    'parameters' => array_map(function ($param) {
+                    'parameters' => array_map(function ($param): array {
+                        $type = $param->getType();
+                        $typeName = 'mixed';
+                        if ($type && $type instanceof ReflectionNamedType) {
+                            $typeName = $type->getName();
+                        }
+
                         return [
                             'name' => $param->getName(),
-                            'type' => $param->getType() ? $param->getType()->getName() : 'mixed',
+                            'type' => $typeName,
                             'optional' => $param->isOptional(),
                         ];
                     }, $method->getParameters()),
@@ -209,7 +213,7 @@ final class RouteWhereLookupScanner extends AbstractScanner
             }
 
             return $methods;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [];
         }
     }
@@ -217,10 +221,11 @@ final class RouteWhereLookupScanner extends AbstractScanner
     private function getSearchStatistics(string $target): array
     {
         $allRoutes = RouteFacade::getRoutes();
-        $totalRoutes = count($allRoutes);
+        $allRoutesArray = $allRoutes->getRoutes();
+        $totalRoutes = count($allRoutesArray);
         $matchingRoutes = 0;
 
-        foreach ($allRoutes as $route) {
+        foreach ($allRoutesArray as $route) {
             if ($this->routeMatchesTarget($route, $target)) {
                 $matchingRoutes++;
             }

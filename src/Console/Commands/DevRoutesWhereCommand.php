@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Grazulex\LaravelDevtoolbox\Console\Commands;
 
+use Exception;
 use Grazulex\LaravelDevtoolbox\DevtoolboxManager;
 use Illuminate\Console\Command;
 
@@ -50,7 +51,7 @@ final class DevRoutesWhereCommand extends Command
             }
 
             return self::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('Error searching routes: '.$e->getMessage());
 
             return self::FAILURE;
@@ -64,6 +65,7 @@ final class DevRoutesWhereCommand extends Command
             if (isset($result['usage'])) {
                 $this->line($result['usage']);
             }
+
             return;
         }
 
@@ -89,8 +91,8 @@ final class DevRoutesWhereCommand extends Command
     private function displayControllerInfo(array $controllerInfo): void
     {
         $this->info('📋 Controller Information:');
-        
-        if (!$controllerInfo['exists']) {
+
+        if (! $controllerInfo['exists']) {
             $this->warn("❌ Controller not found: {$controllerInfo['class']}");
             if (isset($controllerInfo['error'])) {
                 $this->line("   Error: {$controllerInfo['error']}");
@@ -104,29 +106,30 @@ final class DevRoutesWhereCommand extends Command
             if (isset($controllerInfo['methods'])) {
                 $this->line('   Available methods:');
                 foreach ($controllerInfo['methods'] as $method) {
-                    $params = implode(', ', array_map(function ($param) {
-                        return ($param['type'] !== 'mixed' ? $param['type'] . ' ' : '') . 
-                               '$' . $param['name'] . 
+                    $params = implode(', ', array_map(function (array $param): string {
+                        return ($param['type'] !== 'mixed' ? $param['type'].' ' : '').
+                               '$'.$param['name'].
                                ($param['optional'] ? ' = null' : '');
                     }, $method['parameters']));
-                    
+
                     $this->line("     • {$method['name']}({$params})");
                 }
             }
         }
-        
+
         $this->newLine();
     }
 
     private function displayMatchingRoutes(array $routes): void
     {
-        if (empty($routes)) {
+        if ($routes === []) {
             $this->warn('❌ No matching routes found.');
+
             return;
         }
 
-        $this->info("🛣️  Matching Routes (" . count($routes) . "):");
-        
+        $this->info('🛣️  Matching Routes ('.count($routes).'):');
+
         $tableData = [];
         foreach ($routes as $route) {
             $tableData[] = [
@@ -151,7 +154,7 @@ final class DevRoutesWhereCommand extends Command
         $this->line("   Total routes: {$stats['total_routes']}");
         $this->line("   Matching routes: {$stats['matching_routes']}");
         $this->line("   Match percentage: {$stats['match_percentage']}%");
-        
+
         if ($stats['matching_routes'] === 0) {
             $this->newLine();
             $this->comment('💡 Tips:');
