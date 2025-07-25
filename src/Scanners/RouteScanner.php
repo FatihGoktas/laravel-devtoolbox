@@ -32,7 +32,7 @@ final class RouteScanner extends AbstractScanner
     {
         $options = $this->mergeOptions($options);
 
-        $routes = collect(Route::getRoutes())->map(function ($route) use ($options) {
+        $routes = collect(Route::getRoutes())->map(function ($route) use ($options): array {
             return $this->analyzeRoute($route, $options);
         })->toArray();
 
@@ -52,7 +52,7 @@ final class RouteScanner extends AbstractScanner
         return $this->addMetadata($result, $options);
     }
 
-    protected function analyzeRoute($route, array $options): array
+    private function analyzeRoute($route, array $options): array
     {
         $routeData = [
             'uri' => $route->uri(),
@@ -70,7 +70,7 @@ final class RouteScanner extends AbstractScanner
         return $routeData;
     }
 
-    protected function groupByMiddleware(array $routes): array
+    private function groupByMiddleware(array $routes): array
     {
         $grouped = [];
 
@@ -89,7 +89,7 @@ final class RouteScanner extends AbstractScanner
         return $grouped;
     }
 
-    protected function detectUnusedRoutes(array $routes): array
+    private function detectUnusedRoutes(array $routes): array
     {
         // This is a simplified implementation
         // In reality, you'd scan controllers, views, etc. for route usage

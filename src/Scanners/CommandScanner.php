@@ -58,7 +58,7 @@ final class CommandScanner extends AbstractScanner
         return $this->addMetadata($result, $options);
     }
 
-    protected function analyzeCommand(string $name, $command, array $options): array
+    private function analyzeCommand(string $name, $command, array $options): array
     {
         $commandData = [
             'name' => $name,
@@ -74,7 +74,7 @@ final class CommandScanner extends AbstractScanner
         return $commandData;
     }
 
-    protected function isCustomCommand(string $name): bool
+    private function isCustomCommand(string $name): bool
     {
         $laravelPrefixes = [
             'cache:', 'config:', 'db:', 'event:', 'key:', 'make:',
@@ -93,7 +93,7 @@ final class CommandScanner extends AbstractScanner
         return true;
     }
 
-    protected function groupByNamespace(array $commands): array
+    private function groupByNamespace(array $commands): array
     {
         $grouped = [];
 
@@ -105,7 +105,7 @@ final class CommandScanner extends AbstractScanner
         return $grouped;
     }
 
-    protected function extractNamespace(string $commandName): string
+    private function extractNamespace(string $commandName): string
     {
         $parts = explode(':', $commandName);
 

@@ -35,7 +35,7 @@ final class ViewScanner extends AbstractScanner
         $views = [];
 
         foreach ($viewPaths as $path) {
-            $views = array_merge($views, $this->scanViewPath($path, $options));
+            $views = array_merge($views, $this->scanViewPath($path));
         }
 
         $result = [
@@ -44,7 +44,7 @@ final class ViewScanner extends AbstractScanner
         ];
 
         if ($options['detect_unused'] ?? false) {
-            $result['unused_views'] = $this->detectUnusedViews($views);
+            $result['unused_views'] = $this->detectUnusedViews();
         }
 
         if ($options['include_components'] ?? false) {
@@ -54,7 +54,7 @@ final class ViewScanner extends AbstractScanner
         return $this->addMetadata($result, $options);
     }
 
-    protected function scanViewPath(string $path, array $options): array
+    private function scanViewPath(string $path): array
     {
         $views = [];
 
@@ -73,7 +73,7 @@ final class ViewScanner extends AbstractScanner
         return $views;
     }
 
-    protected function analyzeView($file, string $basePath): array
+    private function analyzeView($file, string $basePath): array
     {
         $relativePath = str_replace($basePath.'/', '', $file->getPathname());
         $viewName = str_replace(['/', '.blade.php', '.php'], ['.', '', ''], $relativePath);
@@ -86,14 +86,14 @@ final class ViewScanner extends AbstractScanner
         ];
     }
 
-    protected function detectUnusedViews(array $views): array
+    private function detectUnusedViews(): array
     {
         // This is a simplified implementation
         // In reality, you'd scan controllers, routes, other views for usage
         return [];
     }
 
-    protected function scanComponents(): array
+    private function scanComponents(): array
     {
         $componentPath = resource_path('views/components');
 
@@ -101,6 +101,6 @@ final class ViewScanner extends AbstractScanner
             return [];
         }
 
-        return $this->scanViewPath($componentPath, []);
+        return $this->scanViewPath($componentPath);
     }
 }

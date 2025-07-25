@@ -26,7 +26,7 @@ final class LaravelDevtoolboxServiceProvider extends ServiceProvider
         );
 
         // Register the main manager
-        $this->app->singleton(DevtoolboxManager::class, function ($app) {
+        $this->app->singleton(DevtoolboxManager::class, function ($app): \Grazulex\LaravelDevtoolbox\DevtoolboxManager {
             return new DevtoolboxManager($app);
         });
 

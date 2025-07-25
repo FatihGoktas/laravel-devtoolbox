@@ -46,7 +46,7 @@ final class ModelScanner extends AbstractScanner
         return $this->addMetadata($models, $options);
     }
 
-    protected function scanPath(string $path, array $options): array
+    private function scanPath(string $path, array $options): array
     {
         $models = [];
         $fullPath = base_path($path);
@@ -60,7 +60,7 @@ final class ModelScanner extends AbstractScanner
         foreach ($files as $file) {
             if ($file->getExtension() === 'php') {
                 $model = $this->analyzeModelFile($file->getPathname(), $options);
-                if ($model) {
+                if ($model !== null && $model !== []) {
                     $models[] = $model;
                 }
             }
@@ -69,18 +69,18 @@ final class ModelScanner extends AbstractScanner
         return $models;
     }
 
-    protected function analyzeModelFile(string $filePath, array $options): ?array
+    private function analyzeModelFile(string $filePath, array $options): ?array
     {
         $content = File::get($filePath);
 
         // Basic check if file contains a model
-        if (! preg_match('/class\s+(\w+)\s+extends\s+Model/', $content, $matches)) {
+        if (in_array(preg_match('/class\s+(\w+)\s+extends\s+Model/', $content, $matches), [0, false], true)) {
             return null;
         }
 
         $className = $matches[1];
         $namespace = $this->extractNamespace($content);
-        $fullClassName = $namespace ? $namespace.'\\'.$className : $className;
+        $fullClassName = $namespace !== null && $namespace !== '' && $namespace !== '0' ? $namespace.'\\'.$className : $className;
 
         try {
             $reflection = new ReflectionClass($fullClassName);
@@ -122,7 +122,7 @@ final class ModelScanner extends AbstractScanner
         }
     }
 
-    protected function extractNamespace(string $content): ?string
+    private function extractNamespace(string $content): ?string
     {
         if (preg_match('/namespace\s+([^;]+);/', $content, $matches)) {
             return mb_trim($matches[1]);
@@ -131,7 +131,7 @@ final class ModelScanner extends AbstractScanner
         return null;
     }
 
-    protected function getModelAttributes(string $className): array
+    private function getModelAttributes(string $className): array
     {
         try {
             $model = new $className();
@@ -148,7 +148,7 @@ final class ModelScanner extends AbstractScanner
         }
     }
 
-    protected function getModelRelationships(ReflectionClass $reflection): array
+    private function getModelRelationships(ReflectionClass $reflection): array
     {
         $relationships = [];
         $methods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
@@ -157,7 +157,7 @@ final class ModelScanner extends AbstractScanner
             if ($this->isRelationshipMethod($method)) {
                 $relationships[] = [
                     'name' => $method->getName(),
-                    'type' => $this->guessRelationshipType($method),
+                    'type' => $this->guessRelationshipType(),
                 ];
             }
         }
@@ -165,7 +165,7 @@ final class ModelScanner extends AbstractScanner
         return $relationships;
     }
 
-    protected function getModelScopes(ReflectionClass $reflection): array
+    private function getModelScopes(ReflectionClass $reflection): array
     {
         $scopes = [];
         $methods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
@@ -182,15 +182,8 @@ final class ModelScanner extends AbstractScanner
         return $scopes;
     }
 
-    protected function isRelationshipMethod(ReflectionMethod $method): bool
+    private function isRelationshipMethod(ReflectionMethod $method): bool
     {
-        // Simple heuristic - in a real implementation, you'd analyze the method body
-        $relationshipMethods = [
-            'hasOne', 'hasMany', 'belongsTo', 'belongsToMany',
-            'hasOneThrough', 'hasManyThrough', 'morphOne',
-            'morphMany', 'morphTo', 'morphToMany',
-        ];
-
         // This is a simplified check - you'd want to analyze the actual method content
         return ! in_array($method->getName(), ['getFillable', 'getGuarded', 'getHidden', 'getCasts']) &&
                ! str_starts_with($method->getName(), 'get') &&
@@ -198,7 +191,7 @@ final class ModelScanner extends AbstractScanner
                ! str_starts_with($method->getName(), 'scope');
     }
 
-    protected function guessRelationshipType(ReflectionMethod $method): string
+    private function guessRelationshipType(): string
     {
         // This would require actual code analysis to be accurate
         return 'unknown';

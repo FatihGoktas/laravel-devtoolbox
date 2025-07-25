@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Grazulex\LaravelDevtoolbox\Scanners;
 
+use ReflectionClass;
+use ReflectionException;
+
 final class ServiceScanner extends AbstractScanner
 {
     public function getName(): string
@@ -34,7 +37,7 @@ final class ServiceScanner extends AbstractScanner
         $services = [];
 
         foreach ($bindings as $abstract => $binding) {
-            $serviceData = $this->analyzeService($abstract, $binding, $options);
+            $serviceData = $this->analyzeService($abstract, $binding);
 
             if ($options['filter_custom'] ?? false) {
                 if ($this->isCustomService($abstract)) {
@@ -61,7 +64,7 @@ final class ServiceScanner extends AbstractScanner
         return $this->addMetadata($result, $options);
     }
 
-    protected function analyzeService(string $abstract, array $binding, array $options): array
+    private function analyzeService(string $abstract, array $binding): array
     {
         return [
             'abstract' => $abstract,
@@ -70,7 +73,7 @@ final class ServiceScanner extends AbstractScanner
         ];
     }
 
-    protected function isCustomService(string $abstract): bool
+    private function isCustomService(string $abstract): bool
     {
         $laravelServices = [
             'Illuminate\\', 'Laravel\\', 'Symfony\\', 'Psr\\',
@@ -88,7 +91,7 @@ final class ServiceScanner extends AbstractScanner
         return true;
     }
 
-    protected function getSingletons(): array
+    private function getSingletons(): array
     {
         $singletons = [];
         $bindings = $this->getAppBindings();
@@ -105,7 +108,7 @@ final class ServiceScanner extends AbstractScanner
         return $singletons;
     }
 
-    protected function getAliases(): array
+    private function getAliases(): array
     {
         return $this->getAppAliases();
     }
@@ -116,11 +119,12 @@ final class ServiceScanner extends AbstractScanner
     private function getAppBindings(): array
     {
         try {
-            $reflection = new \ReflectionClass($this->app);
+            $reflection = new ReflectionClass($this->app);
             $property = $reflection->getProperty('bindings');
             $property->setAccessible(true);
+
             return $property->getValue($this->app) ?? [];
-        } catch (\ReflectionException $e) {
+        } catch (ReflectionException $e) {
             return [];
         }
     }
@@ -131,11 +135,12 @@ final class ServiceScanner extends AbstractScanner
     private function getAppAliases(): array
     {
         try {
-            $reflection = new \ReflectionClass($this->app);
+            $reflection = new ReflectionClass($this->app);
             $property = $reflection->getProperty('aliases');
             $property->setAccessible(true);
+
             return $property->getValue($this->app) ?? [];
-        } catch (\ReflectionException $e) {
+        } catch (ReflectionException $e) {
             return [];
         }
     }

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Grazulex\LaravelDevtoolbox\Console\Commands;
 
-use Illuminate\Console\Command;
 use Grazulex\LaravelDevtoolbox\DevtoolboxManager;
+use Illuminate\Console\Command;
 
-class DevModelGraphCommand extends Command
+final class DevModelGraphCommand extends Command
 {
     protected $signature = 'dev:model:graph 
                             {--format=mermaid : Output format (mermaid, json)}
@@ -40,12 +40,10 @@ class DevModelGraphCommand extends Command
                 file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
             }
             $this->info("Graph saved to: {$output}");
+        } elseif ($format === 'mermaid') {
+            $this->line($result);
         } else {
-            if ($format === 'mermaid') {
-                $this->line($result);
-            } else {
-                $this->line(json_encode($result, JSON_PRETTY_PRINT));
-            }
+            $this->line(json_encode($result, JSON_PRETTY_PRINT));
         }
 
         return self::SUCCESS;
@@ -54,13 +52,13 @@ class DevModelGraphCommand extends Command
     private function generateMermaidGraph(array $modelData, string $direction): string
     {
         $graph = "graph {$direction}\n";
-        
+
         // This is a simplified implementation
         if (isset($modelData['data']['data']) && is_array($modelData['data']['data'])) {
             foreach ($modelData['data']['data'] as $model) {
                 $modelName = $model['name'] ?? 'Unknown';
                 $graph .= "    {$modelName}[{$modelName}]\n";
-                
+
                 if (isset($model['relationships']) && is_array($model['relationships'])) {
                     foreach ($model['relationships'] as $relationship) {
                         $relName = $relationship['name'] ?? 'unknown';
@@ -69,7 +67,7 @@ class DevModelGraphCommand extends Command
                 }
             }
         }
-        
+
         return $graph;
     }
 }

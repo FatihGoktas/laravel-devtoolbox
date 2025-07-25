@@ -6,7 +6,7 @@ namespace Grazulex\LaravelDevtoolbox\Console\Commands;
 
 use Illuminate\Console\Command;
 
-class DevSqlTraceCommand extends Command
+final class DevSqlTraceCommand extends Command
 {
     protected $signature = 'dev:sql:trace 
                             {--route= : Trace SQL for a specific route}
@@ -21,13 +21,14 @@ class DevSqlTraceCommand extends Command
         $url = $this->option('url');
         $output = $this->option('output');
 
-        if (!$route && !$url) {
+        if (! $route && ! $url) {
             $this->error('Please specify either --route or --url option');
+
             return self::FAILURE;
         }
 
         $this->info('SQL tracing would be implemented here...');
-        
+
         // This would implement SQL query tracing
         $result = [
             'traced_route' => $route ?? $url,

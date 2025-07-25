@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Grazulex\LaravelDevtoolbox\Console\Commands;
 
-use Illuminate\Console\Command;
 use Grazulex\LaravelDevtoolbox\DevtoolboxManager;
+use Illuminate\Console\Command;
 
-class DevRoutesUnusedCommand extends Command
+final class DevRoutesUnusedCommand extends Command
 {
     protected $signature = 'dev:routes:unused 
                             {--format=array : Output format (array, json, count)}

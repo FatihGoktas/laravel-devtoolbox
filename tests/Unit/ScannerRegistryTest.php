@@ -9,13 +9,12 @@ use Grazulex\LaravelDevtoolbox\Scanners\RouteScanner;
 describe('ScannerRegistry', function (): void {
     test('it can register and retrieve scanners', function (): void {
         $registry = new ScannerRegistry();
-        $scanner = new ModelScanner();
+        $scanner = new ModelScanner($this->app);
 
         $registry->register('models', $scanner);
 
         expect($registry->get('models'))->toBe($scanner);
     });
-
     test('it throws exception for unregistered scanner', function (): void {
         $registry = new ScannerRegistry();
 
@@ -25,7 +24,7 @@ describe('ScannerRegistry', function (): void {
 
     test('it can check if scanner exists', function (): void {
         $registry = new ScannerRegistry();
-        $scanner = new RouteScanner();
+        $scanner = new RouteScanner($this->app);
 
         $registry->register('routes', $scanner);
 
@@ -36,9 +35,8 @@ describe('ScannerRegistry', function (): void {
     test('it returns all registered scanner names', function (): void {
         $registry = new ScannerRegistry();
 
-        $registry->register('models', new ModelScanner());
-        $registry->register('routes', new RouteScanner());
-
+        $registry->register('models', new ModelScanner($this->app));
+        $registry->register('routes', new RouteScanner($this->app));
         $names = $registry->all();
 
         expect($names)
@@ -49,7 +47,7 @@ describe('ScannerRegistry', function (): void {
 
     test('it can unregister a scanner', function (): void {
         $registry = new ScannerRegistry();
-        $scanner = new ModelScanner();
+        $scanner = new ModelScanner($this->app);
 
         $registry->register('models', $scanner);
         expect($registry->has('models'))->toBeTrue();

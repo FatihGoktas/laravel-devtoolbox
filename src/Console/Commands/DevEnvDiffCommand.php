@@ -6,7 +6,7 @@ namespace Grazulex\LaravelDevtoolbox\Console\Commands;
 
 use Illuminate\Console\Command;
 
-class DevEnvDiffCommand extends Command
+final class DevEnvDiffCommand extends Command
 {
     protected $signature = 'dev:env:diff 
                             {--against=.env.example : Compare against this file}
@@ -18,7 +18,7 @@ class DevEnvDiffCommand extends Command
     public function handle(): int
     {
         $against = $this->option('against');
-        $format = $this->option('format');
+        $this->option('format');
         $output = $this->option('output');
 
         $this->info("Comparing .env with {$against}...");
@@ -26,13 +26,15 @@ class DevEnvDiffCommand extends Command
         $envFile = base_path('.env');
         $compareFile = base_path($against);
 
-        if (!file_exists($envFile)) {
+        if (! file_exists($envFile)) {
             $this->error('.env file not found');
+
             return self::FAILURE;
         }
 
-        if (!file_exists($compareFile)) {
+        if (! file_exists($compareFile)) {
             $this->error("Comparison file {$against} not found");
+
             return self::FAILURE;
         }
 
@@ -72,13 +74,13 @@ class DevEnvDiffCommand extends Command
         $vars = [];
 
         foreach ($lines as $line) {
-            if (str_starts_with(trim($line), '#')) {
+            if (str_starts_with(mb_trim($line), '#')) {
                 continue;
             }
 
             if (str_contains($line, '=')) {
                 [$key, $value] = explode('=', $line, 2);
-                $vars[trim($key)] = trim($value);
+                $vars[mb_trim($key)] = mb_trim($value);
             }
         }
 

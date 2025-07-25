@@ -48,25 +48,25 @@ final class MiddlewareScanner extends AbstractScanner
         return $this->addMetadata($result, $options);
     }
 
-    protected function getGlobalMiddleware($kernel): array
+    private function getGlobalMiddleware($kernel): array
     {
         return method_exists($kernel, 'getGlobalMiddleware') ?
             $kernel->getGlobalMiddleware() : [];
     }
 
-    protected function getRouteMiddleware($kernel): array
+    private function getRouteMiddleware($kernel): array
     {
         return method_exists($kernel, 'getRouteMiddleware') ?
             $kernel->getRouteMiddleware() : [];
     }
 
-    protected function getMiddlewareGroups($kernel): array
+    private function getMiddlewareGroups($kernel): array
     {
         return method_exists($kernel, 'getMiddlewareGroups') ?
             $kernel->getMiddlewareGroups() : [];
     }
 
-    protected function getMiddlewareUsage(): array
+    private function getMiddlewareUsage(): array
     {
         // This would scan routes and count middleware usage
         return [

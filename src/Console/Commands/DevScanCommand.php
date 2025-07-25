@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Grazulex\LaravelDevtoolbox\Console\Commands;
 
-use Illuminate\Console\Command;
 use Grazulex\LaravelDevtoolbox\DevtoolboxManager;
+use Illuminate\Console\Command;
 
-class DevScanCommand extends Command
+final class DevScanCommand extends Command
 {
     protected $signature = 'dev:scan 
                             {type? : The type of scan to perform (models, routes, commands, services, middleware, views)}
@@ -28,12 +28,13 @@ class DevScanCommand extends Command
             $result = $manager->scanAll(['format' => $format]);
             $this->info('Scanning all available types...');
         } elseif ($type) {
-            if (!in_array($type, $manager->availableScanners())) {
+            if (! in_array($type, $manager->availableScanners())) {
                 $this->error("Unknown scanner type: {$type}");
-                $this->line('Available types: ' . implode(', ', $manager->availableScanners()));
+                $this->line('Available types: '.implode(', ', $manager->availableScanners()));
+
                 return self::FAILURE;
             }
-            
+
             $result = $manager->scan($type, ['format' => $format]);
             $this->info("Scanning {$type}...");
         } else {
@@ -41,6 +42,7 @@ class DevScanCommand extends Command
             foreach ($manager->availableScanners() as $scanner) {
                 $this->line("  - {$scanner}");
             }
+
             return self::SUCCESS;
         }
 

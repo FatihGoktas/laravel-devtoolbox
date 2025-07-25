@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Grazulex\LaravelDevtoolbox\Console\Commands;
 
-use Illuminate\Console\Command;
 use Grazulex\LaravelDevtoolbox\DevtoolboxManager;
+use Illuminate\Console\Command;
 
-class DevModelWhereUsedCommand extends Command
+final class DevModelWhereUsedCommand extends Command
 {
     protected $signature = 'dev:model:where-used 
                             {model : The model class name or path}
@@ -19,7 +19,7 @@ class DevModelWhereUsedCommand extends Command
     public function handle(DevtoolboxManager $manager): int
     {
         $model = $this->argument('model');
-        $format = $this->option('format');
+        $this->option('format');
         $output = $this->option('output');
 
         $this->info("Analyzing usage of model: {$model}");

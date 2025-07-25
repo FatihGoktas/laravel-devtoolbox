@@ -27,9 +27,9 @@ describe('DevtoolboxManager', function (): void {
 
         expect($result)
             ->toBeArray()
-            ->toHaveKeys(['type', 'count', 'data'])
+            ->toHaveKeys(['type', 'timestamp', 'options', 'metadata', 'data'])
             ->and($result['type'])->toBe('models')
-            ->and($result['count'])->toBeInt()
+            ->and($result['metadata'])->toBeArray()
             ->and($result['data'])->toBeArray();
     });
 
@@ -47,7 +47,7 @@ describe('DevtoolboxManager', function (): void {
 
         expect($result)
             ->toBeArray()
-            ->toHaveKeys(['type', 'count', 'data']);
+            ->toHaveKeys(['type', 'timestamp', 'options', 'metadata', 'data']);
     });
 
     test('it returns scanner registry', function (): void {
