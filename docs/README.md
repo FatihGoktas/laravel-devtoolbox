@@ -31,6 +31,12 @@ php artisan dev:routes:unused
 
 # Generate model relationship graph
 php artisan dev:model:graph --format=mermaid --output=models.mmd
+
+# Analyze database column usage
+php artisan dev:db:column-usage --unused-only
+
+# Security scan for unprotected routes
+php artisan dev:security:unprotected-routes --critical-only
 ```
 
 ## 🔍 Available Scanners
@@ -45,6 +51,8 @@ Laravel Devtoolbox includes these powerful scanners:
 | **Services** | Examine service container bindings | `dev:services` |
 | **Middleware** | Analyze middleware usage and configuration | `dev:middleware` |
 | **Views** | Scan views and templates | `dev:views` |
+| **Database** | Analyze database column usage across codebase | `dev:db:column-usage` |
+| **Security** | Scan for unprotected routes and security issues | `dev:security:unprotected-routes` |
 | **SQL Tracing** | Trace SQL queries for specific routes | `dev:sql:trace` |
 | **Environment** | Compare environment configurations | `dev:env:diff` |
 

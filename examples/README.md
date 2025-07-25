@@ -24,6 +24,12 @@ php artisan dev:routes:unused
 
 # Generate relationship diagram
 php artisan dev:model:graph --format=mermaid --output=models.mmd
+
+# Analyze database column usage
+php artisan dev:db:column-usage --unused-only
+
+# Security scan for unprotected routes
+php artisan dev:security:unprotected-routes --critical-only
 ```
 
 ### Export Data

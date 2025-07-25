@@ -61,6 +61,12 @@ php artisan dev:sql:trace --route=dashboard
 
 # Compare environment files
 php artisan dev:env:diff --against=.env.example
+
+# Analyze database column usage
+php artisan dev:db:column-usage --unused-only
+
+# Security scan for unprotected routes
+php artisan dev:security:unprotected-routes --critical-only
 ```
 
 ## 🔍 Available Commands
@@ -76,6 +82,12 @@ php artisan dev:env:diff --against=.env.example
 ### Route Analysis  
 - `dev:routes` - Inspect application routes
 - `dev:routes:unused` - Detect potentially unused routes
+
+### Database Analysis
+- `dev:db:column-usage` - Analyze database column usage across the Laravel application codebase
+
+### Security Analysis
+- `dev:security:unprotected-routes` - Scan for routes that are not protected by authentication middleware
 
 ### Service & Container Analysis
 - `dev:services` - Examine service container bindings

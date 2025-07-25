@@ -269,6 +269,79 @@ php artisan dev:views --format=json --output=views.json
 
 ---
 
+## Database Analysis Commands
+
+### `dev:db:column-usage`
+
+Analyze database column usage across the Laravel application codebase.
+
+```bash
+php artisan dev:db:column-usage [--table=TABLE] [--exclude=TABLE] [--unused-only] [--format=FORMAT] [--output=FILE]
+```
+
+**Options:**
+- `--table=TABLE` - Specific tables to analyze (multiple allowed)
+- `--exclude=TABLE` - Tables to exclude from analysis (multiple allowed)
+- `--unused-only` - Show only unused columns
+- `--format=FORMAT` - Output format (table, json)
+- `--output=FILE` - Save output to file
+
+**Examples:**
+```bash
+# Analyze all tables
+php artisan dev:db:column-usage
+
+# Analyze specific tables
+php artisan dev:db:column-usage --table=users --table=posts
+
+# Find unused columns only
+php artisan dev:db:column-usage --unused-only
+
+# Exclude system tables
+php artisan dev:db:column-usage --exclude=migrations --exclude=sessions
+
+# Export analysis results
+php artisan dev:db:column-usage --format=json --output=column-usage.json
+```
+
+---
+
+## Security Analysis Commands
+
+### `dev:security:unprotected-routes`
+
+Scan for routes that are not protected by authentication middleware.
+
+```bash
+php artisan dev:security:unprotected-routes [--critical-only] [--exclude=PATTERN] [--format=FORMAT] [--output=FILE]
+```
+
+**Options:**
+- `--critical-only` - Show only critical security issues
+- `--exclude=PATTERN` - Route patterns to exclude from check (multiple allowed)
+- `--format=FORMAT` - Output format (table, json)
+- `--output=FILE` - Save output to file
+
+**Examples:**
+```bash
+# Scan all routes for security issues
+php artisan dev:security:unprotected-routes
+
+# Show only critical issues
+php artisan dev:security:unprotected-routes --critical-only
+
+# Exclude API routes from scan
+php artisan dev:security:unprotected-routes --exclude="api/*"
+
+# Exclude multiple patterns
+php artisan dev:security:unprotected-routes --exclude="public/*" --exclude="webhooks/*"
+
+# Export security analysis
+php artisan dev:security:unprotected-routes --format=json --output=security-scan.json
+```
+
+---
+
 ## SQL Analysis Commands
 
 ### `dev:sql:trace`
