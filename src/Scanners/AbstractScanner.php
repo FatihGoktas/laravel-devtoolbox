@@ -56,8 +56,24 @@ abstract class AbstractScanner implements ScannerInterface
      */
     protected function addMetadata(array $data, array $options): array
     {
-        if (! ($options['include_metadata'] ?? true)) {
+        if (!($options['include_metadata'] ?? true)) {
             return $data;
+        }
+
+        // Calculate the correct count based on the data structure
+        $count = 0;
+        // If data is a simple array of items, count them
+        if (isset($data[0]) && is_array($data[0])) {
+            $count = count($data);
+        } else {
+            // If data is an associative array with nested arrays, count the main items
+            foreach ($data as $value) {
+                if (is_array($value)) {
+                    $count += count($value);
+                } else {
+                    $count++;
+                }
+            }
         }
 
         return [
@@ -65,7 +81,7 @@ abstract class AbstractScanner implements ScannerInterface
                 'scanner' => $this->getName(),
                 'description' => $this->getDescription(),
                 'scanned_at' => now()->toISOString(),
-                'count' => count($data),
+                'count' => $count,
             ],
             'data' => $data,
         ];

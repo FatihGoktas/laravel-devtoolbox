@@ -357,7 +357,7 @@ final class ModelUsageScanner extends AbstractScanner
             $line = mb_trim($line);
 
             // Rechercher les utilisations dans les templates Blade
-            if (preg_match("/\\\${$modelShortName}/", $line) ||
+            if (preg_match("/\\$\{$modelShortName}/", $line) ||
                 preg_match("/@php.*{$modelShortName}/", $line) ||
                 preg_match("/{{.*{$modelShortName}/", $line)) {
                 $usages[] = [
@@ -380,7 +380,8 @@ final class ModelUsageScanner extends AbstractScanner
             $line = mb_trim($line);
 
             // Rechercher les méthodes de relation qui retournent le modèle
-            if (preg_match("/return\s+\\\$this->(hasOne|hasMany|belongsTo|belongsToMany)\s*\(\s*{$modelShortName}::/", $line)) {
+            $pattern = '/return\\s+\\$this->(hasOne|hasMany|belongsTo|belongsToMany)\\s*\\(\\s*' . $modelShortName . '::/';
+            if (preg_match($pattern, $line)) {
                 $relationships[] = [
                     'type' => 'relationship',
                     'line' => $lineNumber + 1,
