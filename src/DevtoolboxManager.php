@@ -8,6 +8,7 @@ use Grazulex\LaravelDevtoolbox\Registry\ScannerRegistry;
 use Grazulex\LaravelDevtoolbox\Scanners\CommandScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\MiddlewareScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\ModelScanner;
+use Grazulex\LaravelDevtoolbox\Scanners\ModelUsageScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\RouteScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\ServiceScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\ViewScanner;
@@ -99,5 +100,6 @@ final class DevtoolboxManager
         $this->registry->register('services', new ServiceScanner($this->app));
         $this->registry->register('middleware', new MiddlewareScanner($this->app));
         $this->registry->register('views', new ViewScanner($this->app));
+        $this->registry->register('model-usage', new ModelUsageScanner($this->app));
     }
 }

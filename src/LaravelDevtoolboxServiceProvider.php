@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace Grazulex\LaravelDevtoolbox;
 
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevCommandsCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevEnvDiffCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevMiddlewareCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevModelGraphCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevModelsCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevModelWhereUsedCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevRoutesCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevRoutesUnusedCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevScanCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevServicesCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevSqlTraceCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevViewsCommand;
 use Illuminate\Support\ServiceProvider;
 
 final class LaravelDevtoolboxServiceProvider extends ServiceProvider
@@ -26,7 +32,7 @@ final class LaravelDevtoolboxServiceProvider extends ServiceProvider
         );
 
         // Register the main manager
-        $this->app->singleton(DevtoolboxManager::class, function ($app): \Grazulex\LaravelDevtoolbox\DevtoolboxManager {
+        $this->app->singleton(DevtoolboxManager::class, function ($app): DevtoolboxManager {
             return new DevtoolboxManager($app);
         });
 
@@ -53,6 +59,12 @@ final class LaravelDevtoolboxServiceProvider extends ServiceProvider
                 DevEnvDiffCommand::class,
                 DevModelGraphCommand::class,
                 DevSqlTraceCommand::class,
+                DevModelsCommand::class,
+                DevRoutesCommand::class,
+                DevCommandsCommand::class,
+                DevServicesCommand::class,
+                DevMiddlewareCommand::class,
+                DevViewsCommand::class,
             ]);
         }
 
