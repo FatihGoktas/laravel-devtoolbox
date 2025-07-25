@@ -30,22 +30,51 @@ final class MiddlewareScanner extends AbstractScanner
 
         $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
 
-        $middleware = [
-            'global' => $this->getGlobalMiddleware($kernel),
-            'route' => $this->getRouteMiddleware($kernel),
-            'group' => $this->getMiddlewareGroups($kernel),
-        ];
+        $globalMiddleware = $this->getGlobalMiddleware($kernel);
+        $routeMiddleware = $this->getRouteMiddleware($kernel);
+        $middlewareGroups = $this->getMiddlewareGroups($kernel);
 
-        $result = [
-            'middleware' => $middleware,
-            'count' => array_sum(array_map('count', $middleware)),
-        ];
+        $middlewareList = [];
 
-        if ($options['include_usage'] ?? false) {
-            $result['usage'] = $this->getMiddlewareUsage();
+        // Add global middleware
+        foreach ($globalMiddleware as $class) {
+            $middlewareList[] = [
+                'class' => $class,
+                'type' => 'global',
+                'alias' => null,
+            ];
         }
 
-        return $this->addMetadata($result, $options);
+        // Add route middleware
+        foreach ($routeMiddleware as $alias => $class) {
+            $middlewareList[] = [
+                'class' => $class,
+                'type' => 'route',
+                'alias' => $alias,
+            ];
+        }
+
+        // Add middleware groups
+        foreach ($middlewareGroups as $group => $classes) {
+            foreach ($classes as $class) {
+                $middlewareList[] = [
+                    'class' => $class,
+                    'type' => 'group',
+                    'alias' => $group,
+                ];
+            }
+        }
+
+        if ($options['include_usage'] ?? false) {
+            // Add usage information if requested
+            $usage = $this->getMiddlewareUsage();
+            return $this->addMetadata([
+                'middleware' => $middlewareList,
+                'usage' => $usage,
+            ], $options);
+        }
+
+        return $this->addMetadata($middlewareList, $options);
     }
 
     private function getGlobalMiddleware($kernel): array

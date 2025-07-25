@@ -43,7 +43,7 @@ final class DevServicesCommand extends Command
 
     private function displayResults(array $result): void
     {
-        $data = $result['data'] ?? [];
+        $data = $result['data']['services'] ?? [];
         $this->line('Found '.count($data).' services:');
         $this->newLine();
 

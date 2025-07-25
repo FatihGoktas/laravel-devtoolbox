@@ -316,7 +316,7 @@ final class ModelUsageScanner extends AbstractScanner
             $line = mb_trim($line);
 
             // Rechercher les uses
-            if (preg_match("/use\s+{$modelClass};/", $line)) {
+            if (preg_match("/use\s+" . preg_quote($modelClass, '/') . ";/", $line)) {
                 $usages[] = [
                     'type' => 'import',
                     'line' => $lineNumber + 1,
@@ -325,9 +325,10 @@ final class ModelUsageScanner extends AbstractScanner
             }
 
             // Rechercher les utilisations directes
-            if (preg_match("/{$modelShortName}::/", $line) ||
-                preg_match("/new\s+{$modelShortName}/", $line) ||
-                preg_match("/{$modelShortName}\s*\(/", $line)) {
+            $quotedModelShortName = preg_quote($modelShortName, '/');
+            if (preg_match("/{$quotedModelShortName}::/", $line) ||
+                preg_match("/new\s+{$quotedModelShortName}/", $line) ||
+                preg_match("/{$quotedModelShortName}\s*\(/", $line)) {
                 $usages[] = [
                     'type' => 'usage',
                     'line' => $lineNumber + 1,
@@ -336,7 +337,7 @@ final class ModelUsageScanner extends AbstractScanner
             }
 
             // Rechercher les type hints
-            if (preg_match("/function\s+\w+\([^)]*{$modelShortName}/", $line)) {
+            if (preg_match("/function\s+\w+\([^)]*{$quotedModelShortName}/", $line)) {
                 $usages[] = [
                     'type' => 'type_hint',
                     'line' => $lineNumber + 1,
@@ -357,9 +358,10 @@ final class ModelUsageScanner extends AbstractScanner
             $line = mb_trim($line);
 
             // Rechercher les utilisations dans les templates Blade
-            if (preg_match("/\\\${$modelShortName}/", $line) ||
-                preg_match("/@php.*{$modelShortName}/", $line) ||
-                preg_match("/{{.*{$modelShortName}/", $line)) {
+            $quotedModelShortName = preg_quote($modelShortName, '/');
+            if (preg_match("/\\$" . $quotedModelShortName . "/", $line) ||
+                preg_match("/@php.*{$quotedModelShortName}/", $line) ||
+                preg_match("/{{.*{$quotedModelShortName}/", $line)) {
                 $usages[] = [
                     'type' => 'blade_usage',
                     'line' => $lineNumber + 1,
@@ -380,7 +382,8 @@ final class ModelUsageScanner extends AbstractScanner
             $line = mb_trim($line);
 
             // Rechercher les méthodes de relation qui retournent le modèle
-            if (preg_match("/return\s+\\\$this->(hasOne|hasMany|belongsTo|belongsToMany)\s*\(\s*{$modelShortName}::/", $line)) {
+            $pattern = '/return\s+\$this->(hasOne|hasMany|belongsTo|belongsToMany)\s*\(\s*' . preg_quote($modelShortName, '/') . '::/';
+            if (preg_match($pattern, $line)) {
                 $relationships[] = [
                     'type' => 'relationship',
                     'line' => $lineNumber + 1,
