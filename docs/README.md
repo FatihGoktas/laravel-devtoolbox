@@ -92,6 +92,10 @@ All scanners support multiple output formats:
 - **📦 Container Analysis** - Service provider and dependency injection analysis
 - **⚙️ Configuration Auditing** - Environment consistency checks
 - **🔄 SQL Tracing** - Monitor and analyze database queries
+- **⚡ Performance Analysis** - N+1 detection and provider timeline analysis
+- **🛡️ Security Scanning** - Unprotected route detection
+- **📋 Log Monitoring** - Real-time log analysis and filtering
+- **🔗 Reverse Lookups** - Find routes by controller and middleware usage
 - **📊 Multiple Formats** - Export to JSON, Markdown, Mermaid diagrams
 - **🛠 Developer Experience** - Easy-to-use CLI with rich output
 
