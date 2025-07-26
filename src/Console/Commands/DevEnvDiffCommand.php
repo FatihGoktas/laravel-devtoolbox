@@ -10,7 +10,7 @@ final class DevEnvDiffCommand extends Command
 {
     protected $signature = 'dev:env:diff 
                             {--against=.env.example : Compare against this file}
-                            {--format=array : Output format (array, json, count)}
+                            {--format=table : Output format (table, json)}
                             {--output= : Save output to file}';
 
     protected $description = 'Compare environment configuration files';
@@ -69,7 +69,7 @@ final class DevEnvDiffCommand extends Command
         } elseif ($format === 'json') {
             $this->line(json_encode($result, JSON_PRETTY_PRINT));
         } else {
-            $this->line(json_encode($result, JSON_PRETTY_PRINT));
+            $this->displayResults($result);
         }
 
         return self::SUCCESS;
@@ -92,5 +92,39 @@ final class DevEnvDiffCommand extends Command
         }
 
         return $vars;
+    }
+
+    private function displayResults(array $result): void
+    {
+        if (empty($result['missing_in_example']) && empty($result['missing_in_env']) && empty($result['value_differences'])) {
+            $this->info('✅ Environment files are in sync!');
+
+            return;
+        }
+
+        if (! empty($result['missing_in_example'])) {
+            $this->warn('Missing in .env.example:');
+            foreach ($result['missing_in_example'] as $key) {
+                $this->line("  - {$key}");
+            }
+            $this->newLine();
+        }
+
+        if (! empty($result['missing_in_env'])) {
+            $this->warn('Missing in .env:');
+            foreach ($result['missing_in_env'] as $key) {
+                $this->line("  - {$key}");
+            }
+            $this->newLine();
+        }
+
+        if (! empty($result['value_differences'])) {
+            $this->warn('Value differences:');
+            foreach ($result['value_differences'] as $diff) {
+                $this->line("  {$diff['key']}:");
+                $this->line("    .env: {$diff['env_value']}");
+                $this->line("    .env.example: {$diff['example_value']}");
+            }
+        }
     }
 }
