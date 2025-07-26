@@ -35,7 +35,7 @@ final class DevProvidersTimelineCommand extends Command
             $output = $this->formatOutput($result, $format);
             
             if ($outputFile = $this->option('output')) {
-                file_put_contents($outputFile, is_string($output) ? $output : json_encode($output, JSON_PRETTY_PRINT));
+                file_put_contents($outputFile, json_encode($output, JSON_PRETTY_PRINT));
                 $this->info("Output saved to: {$outputFile}");
                 return 0;
             }
@@ -53,7 +53,7 @@ final class DevProvidersTimelineCommand extends Command
         }
     }
 
-    private function formatOutput(array $result, string $format): array|string
+    private function formatOutput(array $result, string $format): array
     {
         if ($format === 'json') {
             return [

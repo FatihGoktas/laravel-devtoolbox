@@ -12,10 +12,6 @@ use ReflectionException;
 
 final class ProviderTimelineScanner extends AbstractScanner
 {
-    private array $providerTimings = [];
-
-    private array $bootOrder = [];
-
     private float $totalBootTime = 0;
 
     public function getName(): string
@@ -174,7 +170,7 @@ final class ProviderTimelineScanner extends AbstractScanner
 
     private function isDeferred(ServiceProvider $provider): bool
     {
-        return method_exists($provider, 'provides') && !empty($provider->provides());
+        return $provider instanceof \Illuminate\Contracts\Support\DeferrableProvider && !empty($provider->provides());
     }
 
     private function estimateMemoryUsage(ServiceProvider $provider): int
@@ -201,7 +197,7 @@ final class ProviderTimelineScanner extends AbstractScanner
             if ($constructor) {
                 foreach ($constructor->getParameters() as $parameter) {
                     $type = $parameter->getType();
-                    if ($type && !$type->isBuiltin()) {
+                    if ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
                         $typeName = $type->getName();
                         if (class_exists($typeName) || interface_exists($typeName)) {
                             $dependencies[] = $typeName;
@@ -217,7 +213,7 @@ final class ProviderTimelineScanner extends AbstractScanner
                     $method = $reflection->getMethod($methodName);
                     foreach ($method->getParameters() as $parameter) {
                         $type = $parameter->getType();
-                        if ($type && !$type->isBuiltin()) {
+                        if ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
                             $typeName = $type->getName();
                             if (!in_array($typeName, $dependencies)) {
                                 $dependencies[] = $typeName;
@@ -240,16 +236,14 @@ final class ProviderTimelineScanner extends AbstractScanner
         // This is a simplified approach - in reality, we'd need to hook into the container
         // to track what each provider actually binds
         
-        if ($this->isDeferred($provider)) {
+        if ($provider instanceof \Illuminate\Contracts\Support\DeferrableProvider) {
             // For deferred providers, we can get the provides() result
-            if (method_exists($provider, 'provides')) {
-                $provided = $provider->provides();
-                foreach ($provided as $service) {
-                    $bindings[] = [
-                        'service' => $service,
-                        'type' => 'deferred',
-                    ];
-                }
+            $provided = $provider->provides();
+            foreach ($provided as $service) {
+                $bindings[] = [
+                    'service' => $service,
+                    'type' => 'deferred',
+                ];
             }
         } else {
             // For eager providers, we can only estimate based on class name patterns
@@ -326,7 +320,7 @@ final class ProviderTimelineScanner extends AbstractScanner
         
         sort($values);
         $count = count($values);
-        $middle = floor($count / 2);
+        $middle = (int) floor($count / 2);
         
         if ($count % 2 === 0) {
             return ($values[$middle - 1] + $values[$middle]) / 2;

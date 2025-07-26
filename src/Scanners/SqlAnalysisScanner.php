@@ -208,7 +208,7 @@ final class SqlAnalysisScanner extends AbstractScanner
         $analysis['performance_issues'] = $this->generatePerformanceIssues($analysis);
 
         // Run EXPLAIN if requested
-        if ($autoExplain && (isset($analysis['performance_issues']) && $analysis['performance_issues'] !== [])) {
+        if ($autoExplain && $analysis['performance_issues'] !== []) {
             $analysis['explain_results'] = $this->runExplainQueries($analysis);
         }
 
