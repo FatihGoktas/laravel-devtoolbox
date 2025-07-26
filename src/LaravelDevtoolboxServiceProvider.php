@@ -11,6 +11,7 @@ use Grazulex\LaravelDevtoolbox\Console\Commands\DevDbColumnUsageCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevEnvDiffCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevLogTailCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevMiddlewareCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevMiddlewaresWhereUsedCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevModelGraphCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevModelsCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevModelWhereUsedCommand;
@@ -20,6 +21,7 @@ use Grazulex\LaravelDevtoolbox\Console\Commands\DevRoutesWhereCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevScanCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevSecurityUnprotectedRoutesCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevServicesCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevSqlDuplicatesCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevSqlTraceCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevViewsCommand;
 use Illuminate\Support\ServiceProvider;
@@ -76,6 +78,8 @@ final class LaravelDevtoolboxServiceProvider extends ServiceProvider
                 DevRoutesWhereCommand::class,
                 DevLogTailCommand::class,
                 DevContainerBindingsCommand::class,
+                DevMiddlewaresWhereUsedCommand::class,
+                DevSqlDuplicatesCommand::class,
                 DevAboutPlusCommand::class,
             ]);
         }
