@@ -82,7 +82,7 @@ final class DevSqlDuplicatesCommand extends Command
             } elseif ($format === 'json') {
                 $this->line(json_encode($result, JSON_PRETTY_PRINT));
             } else {
-                $this->displayResults($result, $options);
+                $this->displayResults($result);
             }
 
             return self::SUCCESS;
@@ -93,7 +93,7 @@ final class DevSqlDuplicatesCommand extends Command
         }
     }
 
-    private function displayResults(array $result, array $options): void
+    private function displayResults(array $result): void
     {
         if (isset($result['error'])) {
             $this->error($result['error']);

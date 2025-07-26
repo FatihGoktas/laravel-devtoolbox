@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Grazulex\LaravelDevtoolbox\Console\Commands;
 
 use Exception;
+use Grazulex\LaravelDevtoolbox\Console\Concerns\HandlesJsonSerialization;
 use Grazulex\LaravelDevtoolbox\DevtoolboxManager;
 use Illuminate\Console\Command;
 
 final class DevMiddlewaresWhereUsedCommand extends Command
 {
+    use HandlesJsonSerialization;
+
     protected $signature = 'dev:middlewares:where-used 
                             {middleware? : Specific middleware to analyze (class name, alias, or partial name)}
                             {--show-routes : Include detailed route information}
@@ -47,12 +50,9 @@ final class DevMiddlewaresWhereUsedCommand extends Command
             $result = $manager->scan('middleware-usage', $options);
 
             if ($output) {
-                file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
-                if ($format !== 'json') {
-                    $this->info("Results saved to: {$output}");
-                }
+                $this->outputJson($result, $output);
             } elseif ($format === 'json') {
-                $this->line(json_encode($result, JSON_PRETTY_PRINT));
+                $this->outputJson($result);
             } else {
                 $this->displayResults($result, $options);
             }

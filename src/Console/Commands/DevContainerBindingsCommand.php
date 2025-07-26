@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Grazulex\LaravelDevtoolbox\Console\Commands;
 
 use Exception;
+use Grazulex\LaravelDevtoolbox\Console\Concerns\HandlesJsonSerialization;
 use Grazulex\LaravelDevtoolbox\DevtoolboxManager;
 use Illuminate\Console\Command;
 
 final class DevContainerBindingsCommand extends Command
 {
+    use HandlesJsonSerialization;
+
     protected $signature = 'dev:container:bindings 
                             {--filter= : Filter bindings by name, namespace, or type}
                             {--show-resolved : Attempt to resolve bindings and show actual instances}
@@ -42,12 +45,9 @@ final class DevContainerBindingsCommand extends Command
             $result = $manager->scan('container-bindings', $options);
 
             if ($output) {
-                file_put_contents($output, json_encode($result, JSON_PRETTY_PRINT));
-                if ($format !== 'json') {
-                    $this->info("Results saved to: {$output}");
-                }
+                $this->outputJson($result, $output);
             } elseif ($format === 'json') {
-                $this->line(json_encode($result, JSON_PRETTY_PRINT));
+                $this->outputJson($result);
             } else {
                 $this->displayResults($result, $options);
             }

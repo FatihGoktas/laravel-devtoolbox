@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Grazulex\LaravelDevtoolbox\Console\Commands;
 
 use Exception;
+use Grazulex\LaravelDevtoolbox\Console\Concerns\HandlesJsonSerialization;
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
 
 final class DevLogTailCommand extends Command
 {
+    use HandlesJsonSerialization;
+
     protected $signature = 'dev:log:tail 
                             {--file= : Specific log file to tail (default: laravel.log)}
                             {--lines=50 : Number of lines to show initially}
@@ -137,7 +140,7 @@ final class DevLogTailCommand extends Command
         if (! $process->isSuccessful()) {
             $error = 'Failed to read log file: '.$process->getErrorOutput();
             if ($format === 'json') {
-                $this->line(json_encode(['error' => $error], JSON_PRETTY_PRINT));
+                $this->outputJson(['error' => $error]);
             } else {
                 $this->error($error);
             }
@@ -178,7 +181,7 @@ final class DevLogTailCommand extends Command
         }
 
         if ($format === 'json') {
-            $this->line(json_encode($result, JSON_PRETTY_PRINT));
+            $this->outputJson($result);
         } else {
             $this->displayLogEntries($result['entries']);
             $this->displayLogStatistics($result['statistics']);

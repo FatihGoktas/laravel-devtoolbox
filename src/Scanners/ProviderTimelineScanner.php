@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Grazulex\LaravelDevtoolbox\Scanners;
 
-use Grazulex\LaravelDevtoolbox\Scanners\AbstractScanner;
+use Exception;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionNamedType;
 
 final class ProviderTimelineScanner extends AbstractScanner
 {
@@ -45,7 +46,7 @@ final class ProviderTimelineScanner extends AbstractScanner
 
         // Get all registered providers
         $providers = $this->getRegisteredProviders($app, $includeDeferred);
-        
+
         // Analyze each provider
         $analysis = [];
         $slowProviders = [];
@@ -53,18 +54,18 @@ final class ProviderTimelineScanner extends AbstractScanner
 
         foreach ($providers as $provider) {
             $providerAnalysis = $this->analyzeProvider($provider, $showDependencies, $showBindings);
-            
+
             if ($providerAnalysis['boot_time'] > $slowThreshold) {
                 $slowProviders[] = $providerAnalysis;
             }
-            
+
             $analysis[] = $providerAnalysis;
             $this->totalBootTime += $providerAnalysis['boot_time'];
         }
 
         // Sort by boot time (slowest first)
-        usort($analysis, fn($a, $b) => $b['boot_time'] <=> $a['boot_time']);
-        usort($slowProviders, fn($a, $b) => $b['boot_time'] <=> $a['boot_time']);
+        usort($analysis, fn ($a, $b): int => $b['boot_time'] <=> $a['boot_time']);
+        usort($slowProviders, fn ($a, $b): int => $b['boot_time'] <=> $a['boot_time']);
 
         // Generate timeline
         $timeline = $this->generateTimeline($analysis);
@@ -86,10 +87,10 @@ final class ProviderTimelineScanner extends AbstractScanner
     private function getRegisteredProviders(Application $app, bool $includeDeferred): array
     {
         $providers = [];
-        
+
         // Get loaded providers
         $loadedProviders = $app->getLoadedProviders();
-        
+
         foreach ($loadedProviders as $providerClass => $isLoaded) {
             if ($isLoaded) {
                 $providers[] = $app->getProvider($providerClass);
@@ -99,11 +100,11 @@ final class ProviderTimelineScanner extends AbstractScanner
         // Include deferred providers if requested
         if ($includeDeferred) {
             $deferredServices = $app->getDeferredServices();
-            foreach ($deferredServices as $service => $providerClass) {
-                if (!isset($loadedProviders[$providerClass])) {
+            foreach ($deferredServices as $providerClass) {
+                if (! isset($loadedProviders[$providerClass])) {
                     try {
                         $providers[] = $app->resolveProvider($providerClass);
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         // Skip providers that can't be resolved
                         continue;
                     }
@@ -111,17 +112,17 @@ final class ProviderTimelineScanner extends AbstractScanner
             }
         }
 
-        return array_filter($providers, fn($provider) => $provider instanceof ServiceProvider);
+        return array_filter($providers, fn ($provider): bool => $provider instanceof ServiceProvider);
     }
 
     private function analyzeProvider(ServiceProvider $provider, bool $showDependencies, bool $showBindings): array
     {
         $className = get_class($provider);
         $reflection = new ReflectionClass($provider);
-        
+
         // Measure boot time (simulate since providers are already booted)
         $bootTime = $this->measureProviderBootTime($provider);
-        
+
         $analysis = [
             'class' => $className,
             'name' => class_basename($className),
@@ -146,13 +147,13 @@ final class ProviderTimelineScanner extends AbstractScanner
     {
         // Since providers are already booted, we simulate timing based on complexity
         $reflection = new ReflectionClass($provider);
-        
+
         $baseTime = 1.0; // Base 1ms
-        
+
         // Add time based on number of methods
         $methodCount = count($reflection->getMethods());
         $methodTime = $methodCount * 0.1;
-        
+
         // Add time for file size (rough estimation)
         $filePath = $reflection->getFileName();
         if ($filePath && file_exists($filePath)) {
@@ -161,43 +162,43 @@ final class ProviderTimelineScanner extends AbstractScanner
         } else {
             $fileSizeTime = 0;
         }
-        
+
         // Add randomization to simulate real timing variations
         $randomFactor = mt_rand(80, 120) / 100; // 80% to 120%
-        
+
         return round(($baseTime + $methodTime + $fileSizeTime) * $randomFactor, 2);
     }
 
     private function isDeferred(ServiceProvider $provider): bool
     {
-        return $provider instanceof \Illuminate\Contracts\Support\DeferrableProvider && !empty($provider->provides());
+        return $provider instanceof \Illuminate\Contracts\Support\DeferrableProvider && ! empty($provider->provides());
     }
 
     private function estimateMemoryUsage(ServiceProvider $provider): int
     {
         // Rough estimation based on class complexity
         $reflection = new ReflectionClass($provider);
-        
+
         $baseMemory = 1024; // 1KB base
         $methodMemory = count($reflection->getMethods()) * 100; // 100 bytes per method
         $propertyMemory = count($reflection->getProperties()) * 50; // 50 bytes per property
-        
+
         return $baseMemory + $methodMemory + $propertyMemory;
     }
 
     private function getProviderDependencies(ServiceProvider $provider): array
     {
         $dependencies = [];
-        
+
         try {
             $reflection = new ReflectionClass($provider);
-            
+
             // Check constructor dependencies
             $constructor = $reflection->getConstructor();
             if ($constructor) {
                 foreach ($constructor->getParameters() as $parameter) {
                     $type = $parameter->getType();
-                    if ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
+                    if ($type instanceof ReflectionNamedType && ! $type->isBuiltin()) {
                         $typeName = $type->getName();
                         if (class_exists($typeName) || interface_exists($typeName)) {
                             $dependencies[] = $typeName;
@@ -205,7 +206,7 @@ final class ProviderTimelineScanner extends AbstractScanner
                     }
                 }
             }
-            
+
             // Check if provider uses other services in register/boot methods
             $methods = ['register', 'boot'];
             foreach ($methods as $methodName) {
@@ -213,9 +214,9 @@ final class ProviderTimelineScanner extends AbstractScanner
                     $method = $reflection->getMethod($methodName);
                     foreach ($method->getParameters() as $parameter) {
                         $type = $parameter->getType();
-                        if ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
+                        if ($type instanceof ReflectionNamedType && ! $type->isBuiltin()) {
                             $typeName = $type->getName();
-                            if (!in_array($typeName, $dependencies)) {
+                            if (! in_array($typeName, $dependencies)) {
                                 $dependencies[] = $typeName;
                             }
                         }
@@ -225,17 +226,17 @@ final class ProviderTimelineScanner extends AbstractScanner
         } catch (ReflectionException $e) {
             // Skip if reflection fails
         }
-        
+
         return $dependencies;
     }
 
     private function getProviderBindings(ServiceProvider $provider): array
     {
         $bindings = [];
-        
+
         // This is a simplified approach - in reality, we'd need to hook into the container
         // to track what each provider actually binds
-        
+
         if ($provider instanceof \Illuminate\Contracts\Support\DeferrableProvider) {
             // For deferred providers, we can get the provides() result
             $provided = $provider->provides();
@@ -248,7 +249,7 @@ final class ProviderTimelineScanner extends AbstractScanner
         } else {
             // For eager providers, we can only estimate based on class name patterns
             $className = get_class($provider);
-            
+
             // Common Laravel provider patterns
             if (str_contains($className, 'RouteServiceProvider')) {
                 $bindings[] = ['service' => 'router', 'type' => 'estimated'];
@@ -259,7 +260,7 @@ final class ProviderTimelineScanner extends AbstractScanner
             }
             // Add more patterns as needed
         }
-        
+
         return $bindings;
     }
 
@@ -267,11 +268,11 @@ final class ProviderTimelineScanner extends AbstractScanner
     {
         $timeline = [];
         $currentTime = 0;
-        
+
         foreach ($providers as $provider) {
             $startTime = $currentTime;
             $endTime = $currentTime + $provider['boot_time'];
-            
+
             $timeline[] = [
                 'provider' => $provider['name'],
                 'class' => $provider['class'],
@@ -280,24 +281,24 @@ final class ProviderTimelineScanner extends AbstractScanner
                 'duration' => $provider['boot_time'],
                 'is_deferred' => $provider['is_deferred'],
             ];
-            
+
             $currentTime = $endTime;
         }
-        
+
         return $timeline;
     }
 
     private function calculateStatistics(array $providers, float $slowThreshold): array
     {
         $totalProviders = count($providers);
-        $deferredCount = count(array_filter($providers, fn($p) => $p['is_deferred']));
+        $deferredCount = count(array_filter($providers, fn ($p) => $p['is_deferred']));
         $eagerCount = $totalProviders - $deferredCount;
-        
+
         $bootTimes = array_column($providers, 'boot_time');
-        $slowCount = count(array_filter($bootTimes, fn($time) => $time > $slowThreshold));
-        
+        $slowCount = count(array_filter($bootTimes, fn ($time): bool => $time > $slowThreshold));
+
         $totalMemory = array_sum(array_column($providers, 'memory_usage'));
-        
+
         return [
             'total_providers' => $totalProviders,
             'eager_providers' => $eagerCount,
@@ -314,18 +315,18 @@ final class ProviderTimelineScanner extends AbstractScanner
 
     private function calculateMedian(array $values): float
     {
-        if (empty($values)) {
+        if ($values === []) {
             return 0;
         }
-        
+
         sort($values);
         $count = count($values);
         $middle = (int) floor($count / 2);
-        
+
         if ($count % 2 === 0) {
             return ($values[$middle - 1] + $values[$middle]) / 2;
         }
-        
+
         return $values[$middle];
     }
 }
