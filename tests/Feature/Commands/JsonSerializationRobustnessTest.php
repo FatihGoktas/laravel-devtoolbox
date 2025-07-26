@@ -13,7 +13,7 @@ final class JsonSerializationRobustnessTest extends TestCase
 {
     use HandlesJsonSerialization;
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_problematic_data_types_safely(): void
     {
         $problematicData = [
@@ -61,7 +61,7 @@ final class JsonSerializationRobustnessTest extends TestCase
         }
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_falls_back_gracefully_on_encoding_failure(): void
     {
         // Create a mock where json_encode would fail (simulate by using an object that can't be converted)
@@ -77,7 +77,7 @@ final class JsonSerializationRobustnessTest extends TestCase
         $this->assertEquals('value', $decoded['key']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_outputs_json_safely(): void
     {
         $testData = [
@@ -100,7 +100,7 @@ final class JsonSerializationRobustnessTest extends TestCase
         $this->assertEquals(123, $decoded['number']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_outputs_json_to_file_safely(): void
     {
         $testData = ['test' => 'value'];
@@ -118,7 +118,7 @@ final class JsonSerializationRobustnessTest extends TestCase
         unlink($tempFile);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_handles_deeply_nested_structures(): void
     {
         $deepData = [];
