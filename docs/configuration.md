@@ -95,6 +95,71 @@ This creates `config/devtoolbox.php` with all available options.
 ],
 ```
 
+#### Container Scanner (NEW!)
+
+```php
+'container' => [
+    'show_resolved' => false,         // Attempt to resolve bindings by default
+    'show_parameters' => false,       // Show constructor parameters by default
+    'show_aliases' => true,           // Include container aliases
+    'group_by' => 'type',            // Default grouping (type, namespace, singleton)
+    'filter_patterns' => [],          // Patterns to filter bindings
+],
+```
+
+#### SQL Analysis (NEW!)
+
+```php
+'sql' => [
+    'trace' => [
+        'default_method' => 'GET',    // Default HTTP method for tracing
+        'include_bindings' => true,   // Include SQL parameter bindings
+        'slow_query_threshold' => 100, // Threshold for slow queries (ms)
+    ],
+    'duplicates' => [
+        'default_threshold' => 2,     // Default duplicate detection threshold
+        'auto_explain' => false,      // Auto-explain problematic queries
+        'include_stack_trace' => false, // Include stack traces for queries
+    ],
+],
+```
+
+#### Provider Timeline (NEW!)
+
+```php
+'providers' => [
+    'slow_threshold' => 50,           // Default slow provider threshold (ms)
+    'include_deferred' => false,      // Include deferred providers by default
+    'show_dependencies' => false,     // Show provider dependencies
+    'show_bindings' => false,         // Show services registered by providers
+],
+```
+
+#### Log Analysis (NEW!)
+
+```php
+'logs' => [
+    'default_file' => 'laravel.log',  // Default log file to monitor
+    'default_lines' => 50,            // Default number of lines to show
+    'follow_by_default' => false,     // Default follow mode
+    'available_levels' => [           // Available log levels
+        'emergency', 'alert', 'critical', 'error',
+        'warning', 'notice', 'info', 'debug',
+    ],
+],
+```
+
+#### Enhanced About Command (NEW!)
+
+```php
+'about' => [
+    'extended_by_default' => false,   // Show extended info by default
+    'performance_by_default' => false, // Include performance metrics by default
+    'security_by_default' => false,   // Include security info by default
+    'cache_results' => false,         // Cache about command results
+],
+```
+
 ### Output Configuration
 
 #### Format Options
@@ -169,6 +234,29 @@ DEVTOOLBOX_DEFAULT_FORMAT=json
 DEVTOOLBOX_MEMORY_LIMIT=1G
 DEVTOOLBOX_TIME_LIMIT=600
 DEVTOOLBOX_EXCLUDE_PATHS=tests,docs
+
+# SQL Analysis Configuration (NEW!)
+DEVTOOLBOX_SQL_SLOW_THRESHOLD=100
+DEVTOOLBOX_SQL_DUPLICATE_THRESHOLD=2
+DEVTOOLBOX_SQL_AUTO_EXPLAIN=false
+
+# Provider Performance Configuration (NEW!)
+DEVTOOLBOX_PROVIDER_SLOW_THRESHOLD=50
+DEVTOOLBOX_PROVIDER_INCLUDE_DEFERRED=false
+
+# Container Analysis Configuration (NEW!)
+DEVTOOLBOX_CONTAINER_SHOW_RESOLVED=false
+DEVTOOLBOX_CONTAINER_SHOW_PARAMETERS=false
+
+# Log Analysis Configuration (NEW!)
+DEVTOOLBOX_LOG_DEFAULT_FILE=laravel.log
+DEVTOOLBOX_LOG_DEFAULT_LINES=50
+DEVTOOLBOX_LOG_FOLLOW=false
+
+# Enhanced About Configuration (NEW!)
+DEVTOOLBOX_ABOUT_EXTENDED=false
+DEVTOOLBOX_ABOUT_PERFORMANCE=false
+DEVTOOLBOX_ABOUT_SECURITY=false
 ```
 
 ## Command-Line Overrides
@@ -184,6 +272,27 @@ php artisan dev:models --output=custom-location.json
 
 # Multiple overrides
 php artisan dev:model:graph --format=mermaid --direction=LR --output=graph.mmd
+
+# SQL analysis overrides (NEW!)
+php artisan dev:sql:duplicates --route=users.index --threshold=1 --auto-explain
+
+# Container analysis overrides (NEW!)
+php artisan dev:container:bindings --show-resolved --show-parameters --group-by=singleton
+
+# Provider timeline overrides (NEW!)
+php artisan dev:providers:timeline --slow-threshold=30 --include-deferred --show-dependencies
+
+# Log monitoring overrides (NEW!)
+php artisan dev:log:tail --file=custom.log --lines=100 --follow --level=error
+
+# Enhanced about command overrides (NEW!)
+php artisan dev:about+ --extended --performance --security --format=json
+
+# Routes where command overrides (NEW!)
+php artisan dev:routes:where UserController --show-methods --include-parameters
+
+# Middleware usage overrides (NEW!)
+php artisan dev:middlewares:where-used auth --show-routes --show-groups
 ```
 
 ## Configuration Examples
@@ -201,6 +310,16 @@ php artisan dev:model:graph --format=mermaid --direction=LR --output=graph.mmd
     'include_attributes' => true,
     'include_scopes' => true,
 ],
+'sql' => [
+    'duplicates' => [
+        'default_threshold' => 1,     // Strict N+1 detection
+        'auto_explain' => true,       // Auto-explain for development
+    ],
+],
+'providers' => [
+    'slow_threshold' => 30,           // Lower threshold for development
+    'show_dependencies' => true,      // Show dependencies for debugging
+],
 'performance' => [
     'memory_limit' => '1G',
     'time_limit' => 600,
@@ -214,6 +333,16 @@ php artisan dev:model:graph --format=mermaid --direction=LR --output=graph.mmd
 'defaults' => [
     'format' => 'json',
     'include_metadata' => false,
+],
+'sql' => [
+    'duplicates' => [
+        'default_threshold' => 3,     // Less strict for CI
+        'auto_explain' => false,      // Disable explain in CI
+    ],
+],
+'providers' => [
+    'slow_threshold' => 100,          // Higher threshold for CI
+    'include_deferred' => true,       // Full analysis
 ],
 'performance' => [
     'memory_limit' => '2G',
@@ -234,6 +363,19 @@ php artisan dev:model:graph --format=mermaid --direction=LR --output=graph.mmd
     'exclude_paths' => [
         'vendor', 'node_modules', 'storage', 'tests', 'docs'
     ],
+],
+'sql' => [
+    'trace' => [
+        'slow_query_threshold' => 200, // Higher threshold for production
+    ],
+    'duplicates' => [
+        'default_threshold' => 5,      // Very relaxed threshold
+        'auto_explain' => false,       // Never explain in production
+    ],
+],
+'providers' => [
+    'slow_threshold' => 200,           // High threshold for production
+    'include_deferred' => false,       // Skip deferred providers
 ],
 'performance' => [
     'memory_limit' => '256M',

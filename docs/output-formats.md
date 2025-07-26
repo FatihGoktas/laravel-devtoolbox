@@ -164,22 +164,29 @@ php artisan dev:scan --all --output=/tmp/full-scan.json
 
 ## Format Usage by Command
 
-| Command | Array | JSON | Count | Mermaid |
-|---------|-------|------|-------|---------|
-| `dev:scan` | ✅ | ✅ | ✅ | ❌ |
-| `dev:models` | ✅ | ✅ | ✅ | ❌ |
-| `dev:model:where-used` | ✅ | ✅ | ✅ | ❌ |
-| `dev:model:graph` | ❌ | ✅ | ❌ | ✅ |
-| `dev:routes` | ✅ | ✅ | ✅ | ❌ |
-| `dev:routes:unused` | ✅ | ✅ | ✅ | ❌ |
-| `dev:commands` | ✅ | ✅ | ✅ | ❌ |
-| `dev:services` | ✅ | ✅ | ✅ | ❌ |
-| `dev:middleware` | ✅ | ✅ | ✅ | ❌ |
-| `dev:views` | ✅ | ✅ | ✅ | ❌ |
-| `dev:db:column-usage` | ✅ | ✅ | ❌ | ❌ |
-| `dev:security:unprotected-routes` | ✅ | ✅ | ❌ | ❌ |
-| `dev:sql:trace` | ✅ | ✅ | ❌ | ❌ |
-| `dev:env:diff` | ✅ | ✅ | ❌ | ❌ |
+| Command | Array | JSON | Count | Mermaid | Table |
+|---------|-------|------|-------|---------|-------|
+| `dev:scan` | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `dev:about+` | ❌ | ✅ | ❌ | ❌ | ✅ |
+| `dev:models` | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `dev:model:where-used` | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `dev:model:graph` | ❌ | ✅ | ❌ | ✅ | ❌ |
+| `dev:routes` | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `dev:routes:unused` | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `dev:routes:where` | ❌ | ✅ | ❌ | ❌ | ✅ |
+| `dev:commands` | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `dev:services` | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `dev:container:bindings` | ❌ | ✅ | ❌ | ❌ | ✅ |
+| `dev:providers:timeline` | ❌ | ✅ | ✅ | ❌ | ✅ |
+| `dev:middleware` | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `dev:middlewares:where-used` | ❌ | ✅ | ❌ | ❌ | ✅ |
+| `dev:views` | ✅ | ✅ | ✅ | ❌ | ✅ |
+| `dev:db:column-usage` | ❌ | ✅ | ❌ | ❌ | ✅ |
+| `dev:security:unprotected-routes` | ❌ | ✅ | ❌ | ❌ | ✅ |
+| `dev:sql:trace` | ❌ | ✅ | ❌ | ❌ | ✅ |
+| `dev:sql:duplicates` | ❌ | ✅ | ❌ | ❌ | ✅ |
+| `dev:env:diff` | ✅ | ✅ | ❌ | ❌ | ✅ |
+| `dev:log:tail` | ❌ | ✅ | ❌ | ❌ | ✅ |
 
 ## Data Structure
 
@@ -275,37 +282,229 @@ All commands return data in a consistent structure:
 }
 ```
 
+#### SQL Duplicates Scanner (NEW!)
+```json
+{
+  "data": {
+    "route": "users.index",
+    "method": "GET",
+    "threshold": 2,
+    "total_queries": 12,
+    "unique_queries": 8,
+    "duplicate_queries": 4,
+    "duplicates": [
+      {
+        "query": "SELECT * FROM posts WHERE user_id = ?",
+        "count": 5,
+        "total_time": 45.2,
+        "avg_time": 9.04,
+        "problem_type": "N+1",
+        "recommendation": "Use eager loading with ->with('posts')"
+      }
+    ],
+    "explained_queries": [
+      {
+        "query": "SELECT * FROM posts WHERE user_id = ?",
+        "explain": "Using where; Using index"
+      }
+    ]
+  }
+}
+```
+
+#### Container Bindings Scanner (NEW!)
+```json
+{
+  "data": [
+    {
+      "abstract": "App\\Services\\UserService",
+      "concrete": "App\\Services\\UserService",
+      "shared": true,
+      "type": "singleton",
+      "resolved": true,
+      "aliases": ["user.service"],
+      "constructor_parameters": [
+        {
+          "name": "repository",
+          "type": "App\\Repositories\\UserRepository",
+          "optional": false
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Provider Timeline Scanner (NEW!)
+```json
+{
+  "data": [
+    {
+      "name": "App\\Providers\\AppServiceProvider",
+      "type": "ServiceProvider",
+      "boot_time": 45.2,
+      "register_time": 12.1,
+      "deferred": false,
+      "dependencies": ["EventServiceProvider"],
+      "bindings": [
+        "App\\Services\\CustomService",
+        "custom.service"
+      ]
+    }
+  ]
+}
+```
+
+#### Enhanced About Command (NEW!)
+```json
+{
+  "data": {
+    "environment": {
+      "app_name": "Laravel Application",
+      "app_env": "local",
+      "app_debug": true,
+      "app_version": "1.0.0"
+    },
+    "performance": {
+      "memory_limit": "512M",
+      "execution_time_limit": "60s",
+      "opcache_enabled": true,
+      "php_version": "8.3.0"
+    },
+    "security": {
+      "app_key_set": true,
+      "debug_mode": true,
+      "https_enabled": false,
+      "csrf_protection": true
+    },
+    "database": {
+      "connections": ["mysql", "sqlite"],
+      "default_connection": "mysql",
+      "migration_status": "up_to_date"
+    }
+  }
+}
+```
+
+#### Log Tail Scanner (NEW!)
+```json
+{
+  "data": {
+    "file": "laravel.log",
+    "lines": [
+      {
+        "timestamp": "2024-01-15 10:30:00",
+        "level": "ERROR",
+        "message": "Database connection failed",
+        "context": {
+          "exception": "PDOException",
+          "file": "DatabaseConnector.php",
+          "line": 45
+        }
+      }
+    ],
+    "filters": {
+      "level": "error",
+      "pattern": null,
+      "follow": false
+    },
+    "stats": {
+      "total_lines": 50,
+      "filtered_lines": 3,
+      "log_size": "2.5MB"
+    }
+  }
+}
+```
+
 ## Integration Examples
 
-### CI/CD Integration
+### CI/CD Integration (ENHANCED!)
 
 ```bash
 #!/bin/bash
-# Check for unused routes in CI
+# Enhanced CI/CD checks with new commands
+
+# Check for unused routes
 UNUSED_COUNT=$(php artisan dev:routes:unused --format=count | jq '.count')
 if [ $UNUSED_COUNT -gt 10 ]; then
     echo "Too many unused routes: $UNUSED_COUNT"
     exit 1
 fi
+
+# Check for N+1 problems in critical routes (NEW!)
+CRITICAL_ROUTES=("dashboard" "users.index" "api.orders")
+for route in "${CRITICAL_ROUTES[@]}"; do
+    if ! php artisan dev:sql:duplicates --route=$route --threshold=1 --format=json >/dev/null 2>&1; then
+        echo "N+1 problems detected in route: $route"
+        exit 1
+    fi
+done
+
+# Check service provider performance (NEW!)
+SLOW_PROVIDERS=$(php artisan dev:providers:timeline --slow-threshold=200 --format=count | jq '.slow_count // 0')
+if [ $SLOW_PROVIDERS -gt 5 ]; then
+    echo "Too many slow service providers: $SLOW_PROVIDERS"
+    exit 1
+fi
+
+echo "All enhanced CI checks passed"
 ```
 
-### Documentation Generation
+### Documentation Generation (ENHANCED!)
 
 ```bash
 #!/bin/bash
-# Generate documentation
+# Enhanced documentation generation with new commands
+
+# Basic application structure
 php artisan dev:models --format=json --output=docs/models.json
 php artisan dev:model:graph --format=mermaid --output=docs/models.mmd
 php artisan dev:routes --format=json --output=docs/routes.json
+
+# Enhanced application overview (NEW!)
+php artisan dev:about+ --extended --performance --security --format=json --output=docs/about.json
+
+# Container and service analysis (NEW!)
+php artisan dev:container:bindings --show-resolved --format=json --output=docs/container.json
+php artisan dev:providers:timeline --include-deferred --show-dependencies --format=json --output=docs/providers.json
+
+# Controller route mappings (NEW!)
+CONTROLLERS=("UserController" "ApiController" "AdminController")
+mkdir -p docs/controllers
+for controller in "${CONTROLLERS[@]}"; do
+    php artisan dev:routes:where "$controller" --format=json --output="docs/controllers/$controller.json" 2>/dev/null || true
+done
+
+echo "Enhanced documentation generated"
 ```
 
-### Monitoring Script
+### Monitoring Script (ENHANCED!)
 
 ```bash
 #!/bin/bash
-# Daily application health check
+# Enhanced daily application health monitoring
+
 DATE=$(date +%Y%m%d)
-php artisan dev:scan --all --format=json --output="reports/scan-$DATE.json"
+mkdir -p reports/$DATE
+
+# Basic scans
+php artisan dev:scan --all --format=json --output="reports/$DATE/scan.json"
+
+# Enhanced monitoring (NEW!)
+php artisan dev:about+ --extended --performance --format=json --output="reports/$DATE/about.json"
+php artisan dev:providers:timeline --slow-threshold=100 --format=json --output="reports/$DATE/providers.json"
+php artisan dev:container:bindings --format=json --output="reports/$DATE/container.json"
+
+# SQL performance monitoring for critical routes (NEW!)
+ROUTES=("dashboard" "api.users" "reports.daily")
+mkdir -p reports/$DATE/sql
+for route in "${ROUTES[@]}"; do
+    php artisan dev:sql:duplicates --route=$route --format=json --output="reports/$DATE/sql/$route-n+1.json" 2>/dev/null || true
+    php artisan dev:sql:trace --route=$route --format=json --output="reports/$DATE/sql/$route-trace.json" 2>/dev/null || true
+done
+
+echo "Enhanced monitoring complete - reports saved to reports/$DATE/"
 ```
 
 ## Best Practices
@@ -326,14 +525,33 @@ php artisan dev:scan models --format=json --output="reports/$(date +%Y%m%d)/mode
 php artisan dev:scan routes --format=json --output="reports/$(date +%Y%m%d)/routes.json"
 ```
 
-### Automated Processing
+### Automated Processing (ENHANCED!)
 
 ```bash
-# Process JSON output with jq
+# Process JSON output with jq - Basic examples
 php artisan dev:models --format=json | jq '.data[] | select(.relationships | length > 5)'
 
 # Count specific items
 php artisan dev:routes --format=json | jq '.data | map(select(.middleware | contains(["auth"]))) | length'
+
+# Advanced processing with new commands
+# Find controllers with most routes (NEW!)
+php artisan dev:routes --format=json | jq '.data | group_by(.controller) | map({controller: .[0].controller, routes: length}) | sort_by(.routes) | reverse | .[0:5]'
+
+# Analyze N+1 problems (NEW!)
+php artisan dev:sql:duplicates --route=users.index --format=json | jq '.data.duplicates[] | {query: .query, count: .count, problem: .problem_type}'
+
+# Find slow service providers (NEW!)
+php artisan dev:providers:timeline --format=json | jq '.data[] | select(.boot_time > 100) | {provider: .name, boot_time: .boot_time}'
+
+# Container binding analysis (NEW!)
+php artisan dev:container:bindings --format=json | jq '.data | group_by(.type) | map({type: .[0].type, count: length})'
+
+# Find middleware usage patterns (NEW!)
+php artisan dev:middlewares:where-used auth --format=json | jq '.usage | {routes: (.routes | length), groups: (.groups | length)}'
+
+# Log analysis patterns (NEW!)
+php artisan dev:log:tail --lines=1000 --level=error --format=json | jq '.data.lines[] | select(.message | contains("database")) | .timestamp'
 ```
 
 ## Troubleshooting
