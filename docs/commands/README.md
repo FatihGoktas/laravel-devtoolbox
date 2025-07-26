@@ -45,6 +45,36 @@ php artisan dev:scan routes --format=json --output=routes.json
 - `model-usage` - Model usage analysis
 - `sql-trace` - SQL query tracing
 
+### `dev:about+`
+
+Enhanced version of Laravel's `about` command with additional environment and application details.
+
+```bash
+php artisan dev:about+ [--extended] [--performance] [--security] [--format=FORMAT] [--output=FILE]
+```
+
+**Options:**
+- `--extended` - Show extended information including detailed environment
+- `--performance` - Include performance metrics and optimization tips
+- `--security` - Include security-related information
+- `--format=FORMAT` - Output format (table, json)
+- `--output=FILE` - Save output to file
+
+**Examples:**
+```bash
+# Basic enhanced about information
+php artisan dev:about+
+
+# Extended information with performance metrics
+php artisan dev:about+ --extended --performance
+
+# Include security analysis
+php artisan dev:about+ --extended --performance --security
+
+# Export to JSON
+php artisan dev:about+ --extended --format=json --output=about.json
+```
+
 ---
 
 ## Model Commands
@@ -171,6 +201,41 @@ php artisan dev:routes:unused --format=count
 php artisan dev:routes:unused --format=json --output=unused-routes.json
 ```
 
+### `dev:routes:where`
+
+Find routes that use a specific controller or method (reverse route lookup).
+
+```bash
+php artisan dev:routes:where TARGET [--show-methods] [--include-parameters] [--format=FORMAT] [--output=FILE]
+```
+
+**Arguments:**
+- `TARGET` - Controller class or method to search for (e.g., UserController or UserController@show)
+
+**Options:**
+- `--show-methods` - Show available methods in the target controller
+- `--include-parameters` - Include route parameters in results
+- `--format=FORMAT` - Output format (table, json)
+- `--output=FILE` - Save output to file
+
+**Examples:**
+```bash
+# Find routes using UserController
+php artisan dev:routes:where UserController
+
+# Find specific method usage
+php artisan dev:routes:where UserController@show
+
+# Show available methods
+php artisan dev:routes:where UserController --show-methods
+
+# Include route parameters
+php artisan dev:routes:where UserController --include-parameters
+
+# Export results
+php artisan dev:routes:where UserController --format=json --output=controller-routes.json
+```
+
 ---
 
 ## Service Commands
@@ -217,6 +282,78 @@ php artisan dev:commands
 php artisan dev:commands --format=json
 ```
 
+### `dev:container:bindings`
+
+Analyze Laravel container bindings, singletons, and dependency injection mappings.
+
+```bash
+php artisan dev:container:bindings [--filter=FILTER] [--show-resolved] [--show-parameters] [--show-aliases] [--group-by=TYPE] [--format=FORMAT] [--output=FILE]
+```
+
+**Options:**
+- `--filter=FILTER` - Filter bindings by name, namespace, or type
+- `--show-resolved` - Attempt to resolve bindings and show actual instances
+- `--show-parameters` - Show constructor parameters for classes
+- `--show-aliases` - Include container aliases in output
+- `--group-by=TYPE` - Group results by (type, namespace, singleton)
+- `--format=FORMAT` - Output format (table, json)
+- `--output=FILE` - Save output to file
+
+**Examples:**
+```bash
+# List all container bindings
+php artisan dev:container:bindings
+
+# Show resolved instances
+php artisan dev:container:bindings --show-resolved
+
+# Filter by namespace
+php artisan dev:container:bindings --filter="App\Services"
+
+# Show constructor parameters
+php artisan dev:container:bindings --show-parameters
+
+# Group by singleton status
+php artisan dev:container:bindings --group-by=singleton
+
+# Export analysis
+php artisan dev:container:bindings --format=json --output=container-bindings.json
+```
+
+### `dev:providers:timeline`
+
+Analyze service provider boot timeline and performance.
+
+```bash
+php artisan dev:providers:timeline [--slow-threshold=MS] [--include-deferred] [--show-dependencies] [--show-bindings] [--format=FORMAT] [--output=FILE]
+```
+
+**Options:**
+- `--slow-threshold=MS` - Threshold in milliseconds to mark providers as slow (default: 50)
+- `--include-deferred` - Include deferred providers in analysis
+- `--show-dependencies` - Show provider dependencies and load order
+- `--show-bindings` - Show services registered by each provider
+- `--format=FORMAT` - Output format (table, json)
+- `--output=FILE` - Save output to file
+
+**Examples:**
+```bash
+# Analyze provider timeline
+php artisan dev:providers:timeline
+
+# Find slow providers (>100ms)
+php artisan dev:providers:timeline --slow-threshold=100
+
+# Include deferred providers
+php artisan dev:providers:timeline --include-deferred
+
+# Show dependencies and bindings
+php artisan dev:providers:timeline --show-dependencies --show-bindings
+
+# Export analysis
+php artisan dev:providers:timeline --format=json --output=provider-timeline.json
+```
+
 ---
 
 ## Middleware Commands
@@ -240,6 +377,38 @@ php artisan dev:middleware
 
 # Export middleware analysis
 php artisan dev:middleware --format=json --output=middleware.json
+```
+
+### `dev:middlewares:where-used`
+
+Find where specific middleware is used throughout your application.
+
+```bash
+php artisan dev:middlewares:where-used MIDDLEWARE [--show-routes] [--show-groups] [--format=FORMAT] [--output=FILE]
+```
+
+**Arguments:**
+- `MIDDLEWARE` - Middleware class name, alias, or path
+
+**Options:**
+- `--show-routes` - Show routes that use this middleware
+- `--show-groups` - Show middleware groups that include this middleware
+- `--format=FORMAT` - Output format (table, json)
+- `--output=FILE` - Save output to file
+
+**Examples:**
+```bash
+# Find where auth middleware is used
+php artisan dev:middlewares:where-used auth
+
+# Find custom middleware usage
+php artisan dev:middlewares:where-used App\Http\Middleware\CustomMiddleware
+
+# Show routes and groups
+php artisan dev:middlewares:where-used auth --show-routes --show-groups
+
+# Export results
+php artisan dev:middlewares:where-used auth --format=json --output=auth-usage.json
 ```
 
 ---
@@ -378,6 +547,44 @@ php artisan dev:sql:trace --url=/api/users --headers='{"Authorization": "Bearer 
 php artisan dev:sql:trace --route=dashboard --output=sql-trace.json
 ```
 
+### `dev:sql:duplicates`
+
+Analyze SQL queries for N+1 problems, duplicates, and performance issues.
+
+```bash
+php artisan dev:sql:duplicates [--route=ROUTE] [--url=URL] [--threshold=NUM] [--auto-explain] [--method=METHOD] [--parameters=JSON] [--headers=JSON] [--data=JSON] [--format=FORMAT] [--output=FILE]
+```
+
+**Options:**
+- `--route=ROUTE` - Specific route to analyze
+- `--url=URL` - Specific URL to analyze
+- `--threshold=NUM` - Duplicate query threshold (default: 2)
+- `--auto-explain` - Run EXPLAIN on detected problematic queries
+- `--method=METHOD` - HTTP method for the request (default: GET)
+- `--parameters=JSON` - Route parameters as JSON
+- `--headers=JSON` - Request headers as JSON
+- `--data=JSON` - Request data as JSON
+- `--format=FORMAT` - Output format (table, json)
+- `--output=FILE` - Save output to file
+
+**Examples:**
+```bash
+# Analyze N+1 problems on a route
+php artisan dev:sql:duplicates --route=users.index
+
+# Analyze specific URL with custom threshold
+php artisan dev:sql:duplicates --url=/api/users --threshold=3
+
+# Auto-explain problematic queries
+php artisan dev:sql:duplicates --route=dashboard --auto-explain
+
+# Analyze POST request with data
+php artisan dev:sql:duplicates --url=/api/orders --method=POST --data='{"status":"active"}'
+
+# Export analysis
+php artisan dev:sql:duplicates --route=users.index --format=json --output=n+1-analysis.json
+```
+
 ---
 
 ## Environment Commands
@@ -405,6 +612,50 @@ php artisan dev:env:diff --against=.env.staging
 
 # Export differences
 php artisan dev:env:diff --format=json --output=env-diff.json
+```
+
+---
+
+## Logging Commands
+
+### `dev:log:tail`
+
+Monitor Laravel logs with real-time filtering and pattern matching.
+
+```bash
+php artisan dev:log:tail [--file=FILE] [--lines=NUM] [--pattern=PATTERN] [--level=LEVEL] [--follow] [--format=FORMAT]
+```
+
+**Options:**
+- `--file=FILE` - Specific log file to tail (default: laravel.log)
+- `--lines=NUM` - Number of lines to show initially (default: 50)
+- `--pattern=PATTERN` - Filter logs by pattern (regex supported)
+- `--level=LEVEL` - Filter by log level (emergency, alert, critical, error, warning, notice, info, debug)
+- `--follow` - Follow log in real-time (like tail -f)
+- `--format=FORMAT` - Output format (table, json)
+
+**Examples:**
+```bash
+# Tail default log file
+php artisan dev:log:tail
+
+# Follow logs in real-time
+php artisan dev:log:tail --follow
+
+# Filter by error level
+php artisan dev:log:tail --level=error
+
+# Filter by pattern
+php artisan dev:log:tail --pattern="database"
+
+# Tail specific log file
+php artisan dev:log:tail --file=custom.log
+
+# Show last 100 lines
+php artisan dev:log:tail --lines=100
+
+# Combine filters
+php artisan dev:log:tail --follow --level=error --pattern="SQL"
 ```
 
 ---

@@ -4,17 +4,34 @@ This directory contains ready-to-use automation scripts for Laravel Devtoolbox.
 
 ## Available Scripts
 
-### `daily-health-check.sh`
-**Purpose:** Comprehensive daily application health check  
+### `daily-health-check.sh` (ENHANCED!)
+**Purpose:** Comprehensive daily application health check with new features  
 **Usage:** `./daily-health-check.sh`  
 **Output:** `storage/devtoolbox/daily/`
 
 **Features:**
+- Enhanced application overview (NEW!)
 - Checks for unused routes
 - Analyzes model relationships
 - Validates environment consistency
+- Container binding analysis (NEW!)
+- Service provider performance (NEW!)
 - Generates summary report
 - Provides recommendations
+
+### `sql-performance-analysis.sh` (NEW!)
+**Purpose:** Comprehensive SQL performance analysis and N+1 problem detection  
+**Usage:** `./sql-performance-analysis.sh`  
+**Output:** `storage/devtoolbox/sql-analysis/`
+
+**Features:**
+- N+1 problem detection for critical routes
+- SQL duplicate query analysis
+- Performance threshold monitoring
+- Auto-EXPLAIN for problematic queries
+- Route and URL-based analysis
+- Comprehensive performance reporting
+- Optimization recommendations
 
 ### `model-analysis.sh`  
 **Purpose:** In-depth model and relationship analysis  
@@ -89,6 +106,32 @@ CRITICAL_ROUTES=(
 
 SLOW_QUERY_THRESHOLD=100  # milliseconds
 MAX_QUERIES_THRESHOLD=20
+```
+
+```bash
+# Example customization in sql-performance-analysis.sh (NEW!)
+CRITICAL_ROUTES=(
+    "dashboard"
+    "users.index"
+    "api.orders.index"
+    "your.critical.route"
+)
+
+CRITICAL_URLS=(
+    "/api/users"
+    "/api/orders"
+    "/your/api/endpoint"
+)
+
+N_PLUS_ONE_THRESHOLD=2  # duplicates threshold
+```
+
+```bash
+# Example customization in daily-health-check.sh (ENHANCED!)
+# Now includes container and provider analysis
+UNUSED_ROUTES_THRESHOLD=5
+SLOW_PROVIDER_THRESHOLD=100  # milliseconds
+ORPHAN_MODELS_THRESHOLD=0
 ```
 
 ## Integration

@@ -44,6 +44,9 @@ composer require --dev grazulex/laravel-devtoolbox
 # See all available commands
 php artisan list dev:
 
+# Enhanced application overview (new!)
+php artisan dev:about+ --extended --performance
+
 # Quick health check of your application
 php artisan dev:scan --all
 
@@ -53,11 +56,20 @@ php artisan dev:model:where-used App\Models\User
 # Detect unused routes
 php artisan dev:routes:unused
 
+# Find routes by controller (reverse lookup - new!)
+php artisan dev:routes:where UserController
+
 # Generate model relationship diagram
 php artisan dev:model:graph --format=mermaid --output=models.mmd
 
 # Trace SQL queries for a route
 php artisan dev:sql:trace --route=dashboard
+
+# Analyze SQL queries for N+1 problems (new!)
+php artisan dev:sql:duplicates --route=users.index --threshold=3
+
+# Monitor logs in real-time (new!)
+php artisan dev:log:tail --follow --level=error
 
 # Compare environment files
 php artisan dev:env:diff --against=.env.example
@@ -67,12 +79,19 @@ php artisan dev:db:column-usage --unused-only
 
 # Security scan for unprotected routes
 php artisan dev:security:unprotected-routes --critical-only
+
+# Analyze container bindings (new!)
+php artisan dev:container:bindings --show-resolved
+
+# Service provider performance analysis (new!)
+php artisan dev:providers:timeline --slow-threshold=100
 ```
 
 ## 🔍 Available Commands
 
-### General Scanning
+### General Scanning & Analysis
 - `dev:scan` - Comprehensive application analysis with multiple scanner types
+- `dev:about+` - Enhanced version of Laravel's about command with extended information
 
 ### Model Analysis
 - `dev:models` - List and analyze all Eloquent models
@@ -82,24 +101,32 @@ php artisan dev:security:unprotected-routes --critical-only
 ### Route Analysis  
 - `dev:routes` - Inspect application routes
 - `dev:routes:unused` - Detect potentially unused routes
+- `dev:routes:where` - Find routes by controller/method (reverse lookup)
 
 ### Database Analysis
 - `dev:db:column-usage` - Analyze database column usage across the Laravel application codebase
+- `dev:sql:trace` - Trace SQL queries for specific routes
+- `dev:sql:duplicates` - Analyze SQL queries for N+1 problems, duplicates, and performance issues
 
 ### Security Analysis
 - `dev:security:unprotected-routes` - Scan for routes that are not protected by authentication middleware
 
 ### Service & Container Analysis
 - `dev:services` - Examine service container bindings
+- `dev:container:bindings` - Analyze container bindings, singletons, and dependency injection mappings
+- `dev:providers:timeline` - Analyze service provider boot timeline and performance
 - `dev:commands` - List and analyze artisan commands
+
+### Middleware Analysis
 - `dev:middleware` - Analyze middleware classes and usage
+- `dev:middlewares:where-used` - Find where specific middleware is used
 
 ### View Analysis
 - `dev:views` - Scan Blade templates and views
 
-### Performance & Debugging
-- `dev:sql:trace` - Trace SQL queries for specific routes
+### Environment & Logging
 - `dev:env:diff` - Compare environment configuration files
+- `dev:log:tail` - Monitor Laravel logs with real-time filtering and pattern matching
 
 ## 📊 Export Formats
 
