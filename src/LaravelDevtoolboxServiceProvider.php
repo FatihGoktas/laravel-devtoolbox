@@ -15,6 +15,7 @@ use Grazulex\LaravelDevtoolbox\Console\Commands\DevMiddlewaresWhereUsedCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevModelGraphCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevModelsCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevModelWhereUsedCommand;
+use Grazulex\LaravelDevtoolbox\Console\Commands\DevProvidersTimelineCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevRoutesCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevRoutesUnusedCommand;
 use Grazulex\LaravelDevtoolbox\Console\Commands\DevRoutesWhereCommand;
@@ -80,6 +81,7 @@ final class LaravelDevtoolboxServiceProvider extends ServiceProvider
                 DevContainerBindingsCommand::class,
                 DevMiddlewaresWhereUsedCommand::class,
                 DevSqlDuplicatesCommand::class,
+                DevProvidersTimelineCommand::class,
                 DevAboutPlusCommand::class,
             ]);
         }

@@ -12,6 +12,7 @@ use Grazulex\LaravelDevtoolbox\Scanners\MiddlewareScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\MiddlewareUsageScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\ModelScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\ModelUsageScanner;
+use Grazulex\LaravelDevtoolbox\Scanners\ProviderTimelineScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\RouteScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\RouteWhereLookupScanner;
 use Grazulex\LaravelDevtoolbox\Scanners\SecurityScanner;
@@ -107,6 +108,7 @@ final class DevtoolboxManager
         $this->registry->register('container-bindings', new ContainerBindingsScanner($this->app));
         $this->registry->register('middleware-usage', new MiddlewareUsageScanner($this->app));
         $this->registry->register('sql-analysis', new SqlAnalysisScanner($this->app));
+        $this->registry->register('provider-timeline', new ProviderTimelineScanner($this->app));
         $this->registry->register('commands', new CommandScanner($this->app));
         $this->registry->register('services', new ServiceScanner($this->app));
         $this->registry->register('middleware', new MiddlewareScanner($this->app));
