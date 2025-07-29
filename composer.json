@@ -1,5 +1,5 @@
 {
-    "name": "grazulex/laravel-devtoolbox",
+    "name": "fatihgoktas/laravel-devtoolbox",
     "description": "Swiss-army artisan CLI for Laravel — Scan, inspect, debug, and explore every aspect of your Laravel application from the command line.",
     "keywords": [
         "laravel",
